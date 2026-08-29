@@ -11,20 +11,25 @@ San Francisco is just the pack that ships in the box. The scene, its challenges,
 its way out and its rankings are all data, so any city or scene can have its
 own.
 
-One custom element, no runtime dependencies, about 8 kB gzipped with both packs.
+One custom element, no runtime dependencies, about 9 kB gzipped with both packs. The server is a separate 2.9 kB entry point.
 
-## This is not security
+## Two modes
 
-Say it plainly before anyone ships it: the answers are in the client bundle,
-and any language model already knows which coffee shop the VCs drink at. A
-knowledge-gated challenge is easy for a model and hard for an out-of-group
-human, which is exactly backwards for a bot filter.
+**Local mode** is the default and needs no backend. The answers are in the
+bundle, so anyone who opens devtools can read them. It is entertainment, not a
+gate.
 
-The one exception is the injection honeypot below, which is a real signal. It
-is still not a wall. What this is good for is delight, brand, and turning a dead
-step in a signup flow into something people screenshot. If you need a filter,
-keep your honeypot field and your submit-timing check and treat this as
-decoration on top.
+**Server mode** keeps the answer key on the server. The browser receives tiles
+with no `correct` flag, posts back what was selected, and is told yes or no. A
+pass returns an HMAC-signed, single-use token that your own backend verifies.
+That is a real gate.
+
+Be clear-eyed about what server mode does and does not fix. It stops answer
+scraping, replay and unbounded brute force. It does not make the challenges hard
+for a language model, which already knows which coffee shop the VCs drink at.
+The controls that actually cost an attacker something are the injection honeypot
+and the per-session attempt limit. Keep your own honeypot field and timing check
+either way.
 
 ## Use it
 
@@ -36,7 +41,8 @@ decoration on top.
 
 ```js
 document.querySelector('tech-captcha').addEventListener('verified', (event) => {
-  // { pack: 'sf', attempts: 2, seconds: 8.4, tier: 'local', trapped: false }
+  // { mode: 'local', attempts: 2, seconds: 8.4, tier: 'local', trapped: false }
+  // server mode adds: token: 'eyJwYWNr…'
   console.log(event.detail)
 })
 ```
@@ -47,6 +53,60 @@ React, Vue, Rails, or a static HTML file without a wrapper.
 
 Not published to npm yet. Build it with `npm run build` and serve
 `dist/tech-captcha.js` yourself.
+
+## Server mode
+
+Point the element at an endpoint and it stops grading anything itself:
+
+```html
+<tech-captcha pack="sf" endpoint="/captcha"></tech-captcha>
+```
+
+Mount the handler anywhere that speaks `Request` and `Response`. It routes on
+the last path segment, so `/captcha/session` and `/captcha/attempt`:
+
+```js
+import { createCaptchaServer } from 'tech-captcha/server'
+import { sanFrancisco } from 'tech-captcha/packs'
+
+const captcha = createCaptchaServer({
+  secret: process.env.CAPTCHA_SECRET,   // 16+ chars, never sent to the browser
+  packs: [sanFrancisco],
+})
+
+// Hono, Workers, Deno, Bun, Next route handlers, or any Node adapter
+app.all('/captcha/*', (c) => captcha.handler(c.req.raw))
+```
+
+Then verify the token your form receives, on your own backend:
+
+```js
+const result = await captcha.verify(token)
+// { pack, tier, attempts, trapped, escaped, jti, exp } — or null
+if (!result) return reject()
+if (result.trapped) return treatAsBot()
+```
+
+`verify` returns `null` for anything forged, expired, or already spent. Tokens
+are single-use.
+
+It is built on Web Crypto rather than `node:crypto`, so the same build runs on
+Node, Deno, Bun and Workers.
+
+### Options
+
+| Option | Default | Why you would change it |
+| --- | --- | --- |
+| `secret` | required | Rotating it invalidates every outstanding token |
+| `packs` | required | First entry is the default pack |
+| `store` | `MemoryStore` | Anything running more than one instance needs a shared store |
+| `sessionTtlMs` | 10 min | How long someone has to solve it |
+| `tokenTtlMs` | 5 min | Gap between solving and your form submitting |
+| `maxAttempts` | 10 | A nine-tile grid has 512 possible answers. This is what stops a brute force |
+
+`MemoryStore` is fine for one process and wrong for several: sessions created on
+one instance will not be found on another. Implement `SessionStore` against
+Redis or your database and pass it in.
 
 ## The San Francisco pack
 
@@ -173,7 +233,7 @@ A joke captcha that locks people out is just a broken captcha.
 
 ## Not built yet
 
-Server-side verification, timing signals, and packs loaded at runtime from JSON.
+Timing signals, rate limiting by IP, and packs loaded at runtime from JSON.
 Packs are modules today, which suits contributors sending a pull request but not
 someone hosting a pack of their own on a CDN.
 
@@ -184,9 +244,11 @@ npm install
 npm run dev        # demo page, deliberately hostile page CSS to prove isolation
 npm run build
 npm run typecheck
+npm test           # builds, then exercises the server end to end
 ```
 
-There is no test suite yet.
+The demo runs the real server handler behind Vite, so the local/server toggle on
+that page is hitting genuine endpoints.
 
 ## License
 

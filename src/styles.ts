@@ -55,15 +55,18 @@ export const STYLES = /* css */ `
     opacity: 0.85;
   }
 
-  /* Looks like text that got into the page rather than text the page wrote. */
+  /* Residue, not a callout. It sits on the card surface rather than inside the
+     blue header, because the header is the captcha's own voice and this is
+     supposed to read as something that leaked in. Hairline matches the footer
+     rule so the strip belongs to the card rather than being bolted onto it. */
   .injection {
-    margin-top: 8px;
-    padding: 6px 8px;
-    border-left: 3px solid rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 0.15);
+    padding: 9px 12px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #80868b;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 11px;
-    line-height: 1.35;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
   }
 
   .injection[hidden] { display: none; }

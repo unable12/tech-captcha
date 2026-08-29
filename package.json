@@ -4,16 +4,21 @@
   "description": "A captcha for people who have opinions about Sand Hill Road.",
   "license": "MIT",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/tech-captcha.js",
   "exports": {
-    ".": "./dist/tech-captcha.js"
+    ".": "./dist/tech-captcha.js",
+    "./server": "./dist/server.js",
+    "./packs": "./dist/packs.js"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --config vite.server.config.ts",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run build && node test/server.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

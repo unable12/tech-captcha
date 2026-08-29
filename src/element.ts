@@ -2,10 +2,11 @@ import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
 import { buildTextInput } from './render/text'
 import { drawTierCard, downloadCard } from './render/tier-card'
-import { plantInjection } from './injection'
 import { getPack, packIds, type Pack } from './pack'
-import { pickTier } from './tiers'
-import { gradeGrid, shuffled, type Challenge } from './types'
+import { LocalDriver } from './drivers/local'
+import { RemoteDriver } from './drivers/remote'
+import type { Driver, Outcome } from './drivers/types'
+import type { WireChallenge } from './wire'
 
 const DEFAULT_PACK = 'sf'
 
@@ -24,18 +25,12 @@ function icon(path: string, label: string): string {
 }
 
 export class TechCaptchaElement extends HTMLElement {
-  static readonly observedAttributes = ['pack']
+  static readonly observedAttributes = ['pack', 'endpoint']
 
   #shadow: ShadowRoot
-  #pack: Pack | null = null
-  #challenge: Challenge | null = null
+  #driver: Driver | null = null
+  #current: WireChallenge | null = null
   #selected = new Set<number>()
-  #attempts = 0
-  #rung = 0
-  #startedAt = 0
-  #escaped = false
-  #trapIndex: number | null = null
-  #trapped = false
 
   constructor() {
     super()
@@ -43,22 +38,18 @@ export class TechCaptchaElement extends HTMLElement {
   }
 
   connectedCallback(): void {
-    if (this.#shadow.childElementCount === 0) this.#build()
+    if (this.#shadow.childElementCount === 0) void this.#build()
   }
 
   attributeChangedCallback(name: string, previous: string | null, next: string | null): void {
-    if (name === 'pack' && previous !== next && this.#shadow.childElementCount > 0) {
-      this.#build()
+    if (previous !== next && this.#shadow.childElementCount > 0 && TechCaptchaElement.observedAttributes.includes(name)) {
+      void this.#build()
     }
-  }
-
-  get attempts(): number {
-    return this.#attempts
   }
 
   /** Falls back rather than throwing: a captcha that explodes takes the host
       page's signup form down with it. */
-  #resolvePack(): Pack | null {
+  #localPack(): Pack | null {
     const requested = this.getAttribute('pack')
     const pack = getPack(requested ?? DEFAULT_PACK)
     if (pack) return pack
@@ -72,19 +63,19 @@ export class TechCaptchaElement extends HTMLElement {
     return fallback
   }
 
-  #build(): void {
-    this.#pack = this.#resolvePack()
-    if (!this.#pack) {
+  #makeDriver(): Driver | null {
+    const endpoint = this.getAttribute('endpoint')
+    if (endpoint) return new RemoteDriver(endpoint, this.getAttribute('pack'))
+    const pack = this.#localPack()
+    return pack ? new LocalDriver(pack) : null
+  }
+
+  async #build(): Promise<void> {
+    this.#driver = this.#makeDriver()
+    if (!this.#driver) {
       this.#shadow.replaceChildren()
       return
     }
-
-    this.#attempts = 0
-    this.#rung = 0
-    this.#escaped = false
-    this.#trapped = false
-    this.#trapIndex = null
-    this.#startedAt = performance.now()
 
     const style = document.createElement('style')
     style.textContent = STYLES
@@ -92,20 +83,20 @@ export class TechCaptchaElement extends HTMLElement {
     const card = document.createElement('div')
     card.className = 'card'
     card.setAttribute('role', 'group')
-    card.setAttribute('aria-label', `${this.#pack.name} captcha challenge`)
+    card.setAttribute('aria-label', 'Captcha challenge')
     // Serving a new challenge swaps the header text with no focus change, so
     // without a live region a screen reader never hears that it changed.
     card.innerHTML = `
-      <div class="header" aria-live="polite" aria-atomic="true">
-        <div class="prompt"></div>
-        <div class="subject"></div>
-        <div class="hint"></div>
+      <div class="brief" aria-live="polite" aria-atomic="true">
+        <div class="header">
+          <div class="prompt"></div>
+          <div class="subject"></div>
+          <div class="hint"></div>
+        </div>
         <div class="injection" hidden></div>
       </div>
       <div class="body"></div>
-      <div class="escape">
-        <button class="link" type="button"></button>
-      </div>
+      <div class="escape"><button class="link" type="button"></button></div>
       <div class="footer">
         ${icon(ICONS.reload, 'Get a new challenge')}
         ${icon(ICONS.audio, 'Get an audio challenge')}
@@ -115,97 +106,93 @@ export class TechCaptchaElement extends HTMLElement {
       </div>
     `
 
-    const link = card.querySelector('.link') as HTMLButtonElement
-    link.textContent = this.#pack.escape.label
-    link.addEventListener('click', () => {
-      this.#escaped = true
+    card.querySelector('.verify')!.addEventListener('click', () => void this.#verify())
+    card.querySelector('.icon')!.addEventListener('click', () => void this.#run(() => this.#driver!.reload()))
+    card.querySelector('.link')!.addEventListener('click', () => {
       card.querySelector('.escape')!.remove()
-      this.#serve(this.#pack!.escape.challenge)
+      void this.#run(() => this.#driver!.escape())
     })
 
-    card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
-    card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge!))
-
     this.#shadow.replaceChildren(style, card)
-    this.#serve(this.#pack.ladder[0]!)
+
+    try {
+      const { challenge, escapeLabel } = await this.#driver.start()
+      ;(card.querySelector('.link') as HTMLButtonElement).textContent = escapeLabel
+      this.#render(challenge)
+    } catch (error) {
+      this.#showBroken(error)
+    }
   }
 
-  #serve(challenge: Challenge): void {
-    this.#challenge = shuffled(challenge)
+  async #run(action: () => Promise<{ challenge: WireChallenge }>): Promise<void> {
+    try {
+      this.#render((await action()).challenge)
+    } catch (error) {
+      this.#showBroken(error)
+    }
+  }
+
+  #render(challenge: WireChallenge): void {
+    this.#current = challenge
     this.#selected.clear()
 
     const card = this.#shadow.querySelector('.card')!
-    card.querySelector('.prompt')!.textContent = this.#challenge.prompt
-    card.querySelector('.subject')!.textContent = this.#challenge.subject
-    card.querySelector('.hint')!.textContent = this.#challenge.hint
+    card.querySelector('.prompt')!.textContent = challenge.prompt
+    card.querySelector('.subject')!.textContent = challenge.subject
+    card.querySelector('.hint')!.textContent = challenge.hint
 
-    const injected =
-      this.#challenge.kind === 'grid' && this.#challenge.injection
-        ? plantInjection(this.#challenge)
-        : null
-    this.#trapIndex = injected?.index ?? null
     const injectionEl = card.querySelector('.injection') as HTMLDivElement
-    injectionEl.textContent = injected?.line ?? ''
-    injectionEl.hidden = injected === null
+    injectionEl.textContent = challenge.injection ?? ''
+    injectionEl.hidden = challenge.injection === null
 
     card.querySelector('.body')!.replaceChildren(
-      this.#challenge.kind === 'grid'
-        ? buildGrid(this.#challenge.tiles, (index, pressed) => {
+      challenge.kind === 'grid'
+        ? buildGrid(challenge.tiles ?? [], (index, pressed) => {
             if (pressed) this.#selected.add(index)
             else this.#selected.delete(index)
           })
-        : buildTextInput(this.#challenge, () => this.#verify()),
+        : buildTextInput(challenge, () => void this.#verify()),
     )
   }
 
-  #verify(): void {
-    if (!this.#pack || !this.#challenge) return
-    this.#attempts++
-    const status = this.#shadow.querySelector('.status') as HTMLDivElement
+  async #verify(): Promise<void> {
+    if (!this.#driver || !this.#current) return
 
-    if (this.#trapIndex !== null && this.#selected.has(this.#trapIndex)) {
-      this.#trapped = true
-    }
-
-    const passed =
-      this.#challenge.kind === 'grid'
-        ? gradeGrid(this.#challenge, this.#selected)
-        : this.#challenge.accepts(
-            (this.#shadow.querySelector('.answer') as HTMLInputElement).value,
-          )
-
-    if (!passed) {
-      // Always claims to be easier. Always is not.
-      status.textContent = this.#trapped ? 'Good bot.' : "Let's try an easier one."
-      status.className = 'status is-error'
-      if (this.#escaped) {
-        this.#serve(this.#pack.escape.challenge)
-      } else {
-        this.#rung = Math.min(this.#rung + 1, this.#pack.ladder.length - 1)
-        this.#serve(this.#pack.ladder[this.#rung]!)
-      }
-      ;(this.#shadow.querySelector('.answer') as HTMLInputElement | null)?.focus()
+    const input = this.#shadow.querySelector('.answer') as HTMLInputElement | null
+    let outcome: Outcome
+    try {
+      outcome = await this.#driver.answer({
+        selected: [...this.#selected],
+        value: input?.value ?? '',
+      })
+    } catch (error) {
+      this.#showBroken(error)
       return
     }
 
-    this.#showResult()
+    if (outcome.passed) {
+      this.#showResult(outcome)
+      return
+    }
+
+    const status = this.#shadow.querySelector('.status') as HTMLDivElement
+    status.textContent = outcome.status ?? 'Please try again.'
+    status.className = 'status is-error'
+    if (outcome.challenge) this.#render(outcome.challenge)
+    ;(this.#shadow.querySelector('.answer') as HTMLInputElement | null)?.focus()
   }
 
-  #showResult(): void {
-    const pack = this.#pack!
-    const seconds = (performance.now() - this.#startedAt) / 1000
-    const tier = this.#trapped
-      ? pack.tiers.bot
-      : this.#escaped
-        ? pack.tiers.visitor
-        : pickTier(pack.tiers.ranked, this.#attempts)
+  #showResult(outcome: Outcome): void {
+    const tier = outcome.tier!
+    const attempts = outcome.attempts ?? 0
+    const seconds = outcome.seconds ?? 0
 
     const card = this.#shadow.querySelector('.card')!
     card.querySelector('.prompt')!.textContent = 'Verified. You are'
     card.querySelector('.subject')!.textContent = tier.name
     card.querySelector('.hint')!.textContent = tier.flavor
 
-    const canvas = drawTierCard(tier, this.#attempts, seconds)
+    const canvas = drawTierCard(tier, attempts, seconds)
     canvas.className = 'tier-card'
     canvas.setAttribute('role', 'img')
     canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
@@ -220,20 +207,40 @@ export class TechCaptchaElement extends HTMLElement {
       <button class="verify" type="button">Download card</button>
     `
     footer.querySelector('.verify')!.addEventListener('click', () => downloadCard(canvas, tier))
-    footer.querySelector('.ghost')!.addEventListener('click', () => this.#build())
+    footer.querySelector('.ghost')!.addEventListener('click', () => void this.#build())
 
     this.dispatchEvent(
       new CustomEvent('verified', {
         bubbles: true,
         composed: true,
         detail: {
-          pack: pack.id,
-          attempts: this.#attempts,
+          mode: this.#driver!.mode,
+          attempts,
           seconds,
           tier: tier.id,
-          trapped: this.#trapped,
+          trapped: outcome.trapped ?? false,
+          ...(outcome.token ? { token: outcome.token } : {}),
         },
       }),
     )
+  }
+
+  /** Expired or exhausted sessions are recoverable, so offer the way back
+      rather than leaving a dead widget on the page. */
+  #showBroken(error: unknown): void {
+    console.warn(error)
+    const card = this.#shadow.querySelector('.card')
+    if (!card) return
+
+    card.querySelector('.prompt')!.textContent = 'Something went wrong'
+    card.querySelector('.subject')!.textContent = 'Start over'
+    card.querySelector('.hint')!.textContent = 'That challenge expired or ran out of attempts.'
+    card.querySelector('.body')!.replaceChildren()
+    card.querySelector('.escape')?.remove()
+    ;(card.querySelector('.injection') as HTMLDivElement).hidden = true
+
+    const footer = card.querySelector('.footer')!
+    footer.innerHTML = `<div class="status"></div><button class="verify" type="button">Start over</button>`
+    footer.querySelector('.verify')!.addEventListener('click', () => void this.#build())
   }
 }

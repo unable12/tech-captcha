@@ -1,7 +1,7 @@
-import type { Tile } from '../types'
+import type { WireTile } from '../wire'
 
 export function buildGrid(
-  tiles: readonly Tile[],
+  tiles: readonly WireTile[],
   onToggle: (index: number, pressed: boolean) => void,
 ): HTMLDivElement {
   const grid = document.createElement('div')

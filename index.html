@@ -43,6 +43,11 @@
         <button type="button" data-pack="nonsense">nonsense (falls back)</button>
       </div>
 
+      <div class="packs">
+        <button type="button" data-mode="local">local mode</button>
+        <button type="button" data-mode="server">server mode</button>
+      </div>
+
       <div class="note">
         This page sets Comic Sans, hot-pink buttons and triple line-height on
         every element on purpose. The widget is unaffected, which is the point:
@@ -56,6 +61,12 @@
       document.querySelectorAll('.packs button').forEach((button) => {
         button.addEventListener('click', () => {
           captcha.setAttribute('pack', button.dataset.pack)
+        })
+      })
+      document.querySelectorAll('[data-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+          if (button.dataset.mode === 'server') captcha.setAttribute('endpoint', '/captcha')
+          else captcha.removeAttribute('endpoint')
         })
       })
       captcha.addEventListener('verified', (event) => {
