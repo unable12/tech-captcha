@@ -67,6 +67,15 @@ The element renders into a shadow root, so your page styles cannot reach it and
 its styles cannot reach your page. It is a plain custom element, so it works in
 React, Vue, Rails, or a static HTML file without a wrapper.
 
+Call `reset()` to start over with a fresh challenge, and in server mode a fresh
+session. Worth wiring up: if your own submit fails after the captcha passed,
+without it the only way back to a usable widget is removing and re-adding the
+element.
+
+```js
+captcha.reset()
+```
+
 > [!IMPORTANT]
 > That snippet is **local mode**, which needs no backend and provides no
 > security. The answers are in the bundle and anyone with devtools can read
@@ -389,6 +398,10 @@ npm run build
 npm run typecheck
 npm test           # builds, then exercises the server end to end
 ```
+
+CI runs `typecheck` and `test` on Node 22 and 24 for every push to `main` and
+every pull request. Packs arrive as pull requests from people whose local Node
+version nobody controls, which is the whole reason for the matrix.
 
 The demo runs the real server handler behind Vite, so the local/server toggle at
 the bottom of that page hits genuine endpoints. `/hostile.html` forces Comic

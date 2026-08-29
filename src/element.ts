@@ -63,6 +63,13 @@ export class TechCaptchaElement extends HTMLElement {
     this.#stopTimer()
   }
 
+  /** Start over with a fresh challenge, and in server mode a fresh session.
+      For when your own submit fails after the captcha passed: without this the
+      only way back to a usable widget is removing and re-adding the element. */
+  reset(): void {
+    void this.#build()
+  }
+
   #stopTimer(): void {
     if (this.#timer !== null) clearInterval(this.#timer)
     this.#timer = null
