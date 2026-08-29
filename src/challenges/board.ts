@@ -1,12 +1,13 @@
-import type { Challenge } from '../types'
+import type { GridChallenge } from '../types'
 import * as art from '../art/people'
 
 /* Knowledge, not perception. "Select the vests" is something anyone can do.
    Knowing that the suit is the one person definitely not going to a board
    meeting is the actual filter. The hi-vis vest is there for anyone reading
    the pictures instead of the question. */
-export const boardMeeting: Challenge = {
+export const boardMeeting: GridChallenge = {
   id: 'board-meeting',
+  kind: 'grid',
   prompt: 'Select everyone who is',
   subject: 'on their way to a board meeting',
   hint: 'Dress code is a real thing here.',

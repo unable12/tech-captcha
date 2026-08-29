@@ -8,20 +8,30 @@ export interface Tile {
   correct: boolean
 }
 
-export interface Challenge {
+interface ChallengeBase {
   id: string
   /** Small line above the subject, e.g. "Select all squares with". */
   prompt: string
   /** The big line, e.g. "a car you'd see in San Francisco". */
   subject: string
   hint: string
+}
+
+export interface GridChallenge extends ChallengeBase {
+  kind: 'grid'
   tiles: Tile[]
 }
 
-export type Grade = 'pass' | 'fail'
+export interface TextChallenge extends ChallengeBase {
+  kind: 'text'
+  placeholder: string
+  accepts(value: string): boolean
+}
 
-export function grade(challenge: Challenge, selected: ReadonlySet<number>): Grade {
+export type Challenge = GridChallenge | TextChallenge
+
+export function gradeGrid(challenge: GridChallenge, selected: ReadonlySet<number>): boolean {
   const missed = challenge.tiles.some((t, i) => t.correct && !selected.has(i))
   const wrong = challenge.tiles.some((t, i) => !t.correct && selected.has(i))
-  return missed || wrong ? 'fail' : 'pass'
+  return !missed && !wrong
 }

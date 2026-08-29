@@ -139,6 +139,47 @@ export const STYLES = /* css */ `
   .icon:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
   .icon svg { width: 20px; height: 20px; fill: currentColor; }
 
+  .escape {
+    padding: 0 8px 10px;
+  }
+
+  .link {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-block;
+    padding: 4px 2px;
+    color: #1a73e8;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .link:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+
+  .text-answer {
+    padding: 26px 16px 30px;
+  }
+
+  /* 16px keeps iOS from zooming the page when the field takes focus. */
+  .answer {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d3d3d3;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 16px;
+    color: #000;
+  }
+
+  .answer:focus-visible {
+    border-color: #1a73e8;
+    outline: 2px solid #1a73e8;
+    outline-offset: -1px;
+  }
+
   .tier-card {
     display: block;
     width: 100%;

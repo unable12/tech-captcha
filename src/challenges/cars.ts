@@ -1,12 +1,13 @@
-import type { Challenge } from '../types'
+import type { GridChallenge } from '../types'
 import * as art from '../art/cars'
 
 /* The point of this one: recognising a Waymo is a vision task anyone passes.
    Knowing that a Civic with a trash bag taped over the window is a San
    Francisco car is a knowledge task. The wrong answers are all vehicles that
    exist, just not here. */
-export const carsOfSF: Challenge = {
+export const carsOfSF: GridChallenge = {
   id: 'cars-of-sf',
+  kind: 'grid',
   prompt: 'Select all squares with',
   subject: 'a car you would see in San Francisco',
   hint: 'Click verify once there are none left.',

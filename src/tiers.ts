@@ -13,6 +13,14 @@ const TIERS: readonly Tier[] = [
   { id: 'tourist', name: 'TOURIST', flavor: 'You have been to Pier 39 recently.' },
 ]
 
+/* Taking the escape hatch is an honest answer, so it does not get scored as a
+   failure. */
+export const VISITOR: Tier = {
+  id: 'visitor',
+  name: 'VISITOR',
+  flavor: 'No notes. Come by sometime.',
+}
+
 export function tierFor(attempts: number): Tier {
   return TIERS[Math.min(attempts - 1, TIERS.length - 1)] ?? TIERS[TIERS.length - 1]!
 }

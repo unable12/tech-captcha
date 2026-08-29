@@ -1,9 +1,10 @@
 import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
 import { drawTierCard, downloadCard } from './render/tier-card'
-import { LADDER, shuffled } from './challenges'
-import { tierFor } from './tiers'
-import { grade, type Challenge } from './types'
+import { buildTextInput } from './render/text'
+import { LADDER, escapeHatch, shuffled } from './challenges'
+import { tierFor, VISITOR } from './tiers'
+import { gradeGrid, type Challenge } from './types'
 
 const ICONS = {
   reload:
@@ -26,6 +27,7 @@ export class TechCaptchaElement extends HTMLElement {
   #attempts = 0
   #rung = 0
   #startedAt = 0
+  #escaped = false
 
   constructor() {
     super()
@@ -43,6 +45,7 @@ export class TechCaptchaElement extends HTMLElement {
   #build(): void {
     this.#attempts = 0
     this.#rung = 0
+    this.#escaped = false
     this.#startedAt = performance.now()
 
     const style = document.createElement('style')
@@ -50,13 +53,20 @@ export class TechCaptchaElement extends HTMLElement {
 
     const card = document.createElement('div')
     card.className = 'card'
+    card.setAttribute('role', 'group')
+    card.setAttribute('aria-label', 'Captcha challenge')
+    // Serving a new challenge swaps the header text with no focus change, so
+    // without a live region a screen reader never hears that it changed.
     card.innerHTML = `
-      <div class="header">
+      <div class="header" aria-live="polite" aria-atomic="true">
         <div class="prompt"></div>
         <div class="subject"></div>
         <div class="hint"></div>
       </div>
       <div class="body"></div>
+      <div class="escape">
+        <button class="link" type="button">I have never been to San Francisco</button>
+      </div>
       <div class="footer">
         ${icon(ICONS.reload, 'Get a new challenge')}
         ${icon(ICONS.audio, 'Get an audio challenge')}
@@ -68,6 +78,11 @@ export class TechCaptchaElement extends HTMLElement {
 
     card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
     card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge))
+    card.querySelector('.link')!.addEventListener('click', () => {
+      this.#escaped = true
+      card.querySelector('.escape')!.remove()
+      this.#serve(escapeHatch)
+    })
 
     this.#shadow.replaceChildren(style, card)
     this.#serve(LADDER[0]!)
@@ -82,11 +97,14 @@ export class TechCaptchaElement extends HTMLElement {
     card.querySelector('.subject')!.textContent = this.#challenge.subject
     card.querySelector('.hint')!.textContent = this.#challenge.hint
 
-    card.querySelector('.body')!.replaceChildren(
-      buildGrid(this.#challenge.tiles, (index, pressed) => {
-        if (pressed) this.#selected.add(index)
-        else this.#selected.delete(index)
-      }),
+    const body = card.querySelector('.body')!
+    body.replaceChildren(
+      this.#challenge.kind === 'grid'
+        ? buildGrid(this.#challenge.tiles, (index, pressed) => {
+            if (pressed) this.#selected.add(index)
+            else this.#selected.delete(index)
+          })
+        : buildTextInput(this.#challenge, () => this.#verify()),
     )
   }
 
@@ -94,12 +112,24 @@ export class TechCaptchaElement extends HTMLElement {
     this.#attempts++
     const status = this.#shadow.querySelector('.status') as HTMLDivElement
 
-    if (grade(this.#challenge, this.#selected) === 'fail') {
+    const passed =
+      this.#challenge.kind === 'grid'
+        ? gradeGrid(this.#challenge, this.#selected)
+        : this.#challenge.accepts(
+            (this.#shadow.querySelector('.answer') as HTMLInputElement).value,
+          )
+
+    if (!passed) {
       // Always claims to be easier. Always is not.
-      this.#rung = Math.min(this.#rung + 1, LADDER.length - 1)
       status.textContent = "Let's try an easier one."
       status.className = 'status is-error'
-      this.#serve(LADDER[this.#rung]!)
+      if (this.#escaped) {
+        this.#serve(escapeHatch)
+      } else {
+        this.#rung = Math.min(this.#rung + 1, LADDER.length - 1)
+        this.#serve(LADDER[this.#rung]!)
+      }
+      ;(this.#shadow.querySelector('.answer') as HTMLInputElement | null)?.focus()
       return
     }
 
@@ -108,7 +138,7 @@ export class TechCaptchaElement extends HTMLElement {
 
   #showResult(): void {
     const seconds = (performance.now() - this.#startedAt) / 1000
-    const tier = tierFor(this.#attempts)
+    const tier = this.#escaped ? VISITOR : tierFor(this.#attempts)
     const card = this.#shadow.querySelector('.card')!
 
     card.querySelector('.prompt')!.textContent = 'Verified. You are'
@@ -120,6 +150,7 @@ export class TechCaptchaElement extends HTMLElement {
     canvas.setAttribute('role', 'img')
     canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
     card.querySelector('.body')!.replaceChildren(canvas)
+    card.querySelector('.escape')?.remove()
 
     const footer = card.querySelector('.footer')!
     footer.innerHTML = `
