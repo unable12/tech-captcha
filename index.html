@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tech-captcha — demo</title>
+    <style>
+      /* Deliberately hostile page styles. If any of this reaches the widget,
+         shadow-DOM isolation is broken. */
+      * { font-family: "Comic Sans MS", cursive !important; }
+      button { background: hotpink !important; border: 4px dotted lime !important; }
+      div { line-height: 3 !important; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f5f5f7;
+        color: #1d1d1f;
+      }
+      .page { text-align: center; padding: 40px 20px; }
+      h1 { margin: 0 0 4px; font-size: 24px; }
+      p.sub { margin: 0 0 28px; color: #6e6e73; }
+      .widget { display: inline-block; line-height: normal !important; }
+      .note { margin-top: 28px; font-size: 13px; color: #6e6e73; max-width: 340px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Create your account</h1>
+      <p class="sub">One more step. It's a formality.</p>
+
+      <div class="widget">
+        <tech-captcha></tech-captcha>
+      </div>
+
+      <div class="note">
+        This page sets Comic Sans, hot-pink buttons and triple line-height on
+        everything. The widget should be untouched.
+      </div>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>
