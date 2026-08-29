@@ -42,7 +42,7 @@ check('burned session is gone', dead.status === 410, dead.status)
 const good = await post('session', {})
 // Solve it by asking the server for every subset would be cheating; instead
 // drive it the way the browser does, using the labels the wire format exposes.
-const WRONG = ['Yellow taxi with a checkered roof sign', 'Stretch limousine', 'Pickup truck with a gun rack']
+const WRONG = ['A yellow taxi cab', 'A stretch limo', 'A pickup with a gun rack']
 const selected = good.body.challenge.tiles
   .map((t, i) => (WRONG.includes(t.label) ? -1 : i))
   .filter((i) => i >= 0)

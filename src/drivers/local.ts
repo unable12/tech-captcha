@@ -1,7 +1,7 @@
 import type { Driver, Outcome } from './types'
 import type { Pack } from '../pack'
 import type { Challenge } from '../types'
-import { shuffled } from '../types'
+import { gradeSelection, shuffled } from '../types'
 import { plantInjection } from '../injection'
 import { pickTier } from '../tiers'
 import { toWire, type WireChallenge } from '../wire'
@@ -13,7 +13,6 @@ export class LocalDriver implements Driver {
 
   #pack: Pack
   #current: Challenge
-  #answer: number[] = []
   #trapIndex: number | null = null
   #attempts = 0
   #rung = 0
@@ -48,9 +47,9 @@ export class LocalDriver implements Driver {
     if (this.#trapIndex !== null && selected.includes(this.#trapIndex)) this.#trapped = true
 
     const passed =
-      this.#current.kind === 'grid'
-        ? this.#answer.length === selected.length && this.#answer.every((i) => selected.includes(i))
-        : this.#current.accepts(value)
+      this.#current.kind === 'text'
+        ? this.#current.accepts(value)
+        : gradeSelection(this.#current, new Set(selected))
 
     if (passed) {
       const tier = this.#trapped
@@ -87,12 +86,8 @@ export class LocalDriver implements Driver {
     this.#current = served
 
     const injection =
-      served.kind === 'grid' && served.injection ? plantInjection(served) : null
+      served.kind !== 'text' && served.injection ? plantInjection(served) : null
     this.#trapIndex = injection?.index ?? null
-    this.#answer =
-      served.kind === 'grid'
-        ? served.tiles.flatMap((tile, index) => (tile.correct ? [index] : []))
-        : []
 
     return toWire(served, injection?.line ?? null)
   }

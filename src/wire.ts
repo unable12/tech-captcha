@@ -5,13 +5,18 @@ import type { Challenge } from './types'
    is missing: `correct`. */
 export interface WireTile {
   id: string
-  art: string
+  /** Accessible name. For phrase tiles this is the phrase itself. */
   label: string
+  /** Inline SVG, image tiles only. */
+  art?: string
+  /** Phrase, text tiles only. */
+  text?: string
 }
 
 export interface WireChallenge {
   id: string
-  kind: 'grid' | 'text'
+  kind: 'grid' | 'phrases' | 'text'
+  columns?: 1 | 2 | 3
   prompt: string
   subject: string
   hint: string
@@ -31,10 +36,16 @@ export function toWire(challenge: Challenge, injection: string | null): WireChal
     injection,
   }
 
-  return challenge.kind === 'grid'
-    ? {
-        ...base,
-        tiles: challenge.tiles.map(({ id, art, label }) => ({ id, art, label })),
-      }
-    : { ...base, placeholder: challenge.placeholder }
+  if (challenge.kind === 'text') {
+    return { ...base, placeholder: challenge.placeholder }
+  }
+
+  return {
+    ...base,
+    columns: challenge.columns ?? 3,
+    tiles:
+      challenge.kind === 'grid'
+        ? challenge.tiles.map(({ id, art, label }) => ({ id, art, label }))
+        : challenge.tiles.map(({ id, text }) => ({ id, text, label: text })),
+  }
 }

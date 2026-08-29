@@ -11,7 +11,7 @@ San Francisco is just the pack that ships in the box. The scene, its challenges,
 its way out and its rankings are all data, so any city or scene can have its
 own.
 
-One custom element, no runtime dependencies, about 9 kB gzipped with both packs. The server is a separate 2.9 kB entry point.
+One custom element, no runtime dependencies, about 8 kB gzipped with both packs. The server is a separate 2.9 kB entry point.
 
 ## Two modes
 
@@ -110,13 +110,32 @@ Redis or your database and pass it in.
 
 ## The San Francisco pack
 
+Three challenges, each a grid of phrases:
+
 | Challenge | The actual test |
 | --- | --- |
-| Cars you would see in San Francisco | Waymo, Zoox, Cybertruck, a Muni bus, a rideshare Prius and a sedan with the rear window covered over. The wrong answers are a yellow cab, a limo and a pickup with a gun rack: vehicles that exist, just not here. |
-| On their way to a board meeting | The vests and the quarter-zip. The full suit and the tuxedo are wrong. The hi-vis vest is there for anyone matching on the picture instead of the question. |
+| A car you would see in San Francisco | A Waymo with nobody in it, a Civic with a bin bag taped over the window, a parked car with the glovebox left open. The wrong answers are a yellow cab, a stretch limo and a pickup with a gun rack: vehicles that exist, just not here. |
+| Somewhere you might run into a VC | South Park, Sand Hill Road, Sightglass, Barry's at 6am. Every wrong answer is a tourist trap, which is the joke and also the filter. |
+| Actually YC companies | Six real ones against three invented ones. Real YC names are absurd enough that the fakes are hard to pick out. |
 
 Fail one and you get *"Let's try an easier one."* It is not easier. That happens
 from the very first failure.
+
+### Why phrases and not pictures
+
+This shipped as an image grid first and it did not work. A 98px monochrome
+silhouette can say "sedan"; it cannot say "the specific beat-up Civic you see
+parked in the Mission." Real image captchas use photographs, which carry that
+detail. Swapping photos for drawings while keeping the image-grid format kept
+the shape and threw away the thing that made the shape work.
+
+The tell was three separate collisions in nine tiles, where a correct tile and
+an incorrect tile were indistinguishable. That is not bad drawing, it is the
+format refusing to hold the content. A shibboleth lives in language: "South
+Park" versus "Pier 39" is a name, not a picture.
+
+The image kind is still supported and `packs/example` uses it. San Francisco
+ships phrases.
 
 ## The injection honeypot
 
@@ -186,23 +205,31 @@ registerPack(london)
 <tech-captcha pack="london"></tech-captcha>
 ```
 
-A grid challenge is data plus an inline SVG per tile. Any tile count works, the
-grid is three across:
+A challenge is data. Phrase challenges need no art at all:
 
 ```ts
-const placesYouMightMeetAVc: GridChallenge = {
+const vcSpots: PhraseChallenge = {
   id: 'vc-spots',
-  kind: 'grid',
+  kind: 'phrases',
   injection: true,
-  prompt: 'Select all squares with',
-  subject: 'somewhere you might meet a VC',
-  hint: 'Click verify once there are none left.',
+  columns: 3,          // 3 for short names, 2 for sentences, 1 for anything longer
+  prompt: 'Select everywhere you might',
+  subject: 'run into a VC',
+  hint: 'Three of these are for tourists.',
   tiles: [
-    { id: 'soho-house', art: '<svg …>', label: 'Described for screen readers', correct: true },
+    { id: 'south-park', text: 'South Park', correct: true },
+    { id: 'pier-39', text: 'Pier 39', correct: false },
     // …
   ],
 }
 ```
+
+Pick `columns` to fit the phrases rather than trimming phrases to fit a grid.
+In two columns, use an even number of tiles or the last row is left with an
+orphan.
+
+Image challenges use `kind: 'grid'` and take an inline SVG plus a screen-reader
+`label` per tile.
 
 `src/packs/example` is a working template with both challenge kinds in about
 fifty lines. Copy it.
@@ -226,10 +253,10 @@ A joke captcha that locks people out is just a broken captcha.
   `TOURIST`.
 - Everything is reachable by keyboard in reading order, with visible focus.
 - The header is a live region, so a new challenge is announced.
-- Known limitation: tile `aria-label`s describe the pictures, so a screen reader
-  user can solve any challenge by reading them. That is the same fact as the
-  answer key being in the bundle, and it is fine for as long as this is
-  entertainment.
+- Phrase tiles carry no hidden information: the accessible name is the phrase
+  on screen, so a screen reader user gets exactly what a sighted user gets.
+  Image challenges do leak, since the tile's `aria-label` has to describe the
+  picture. That is one more reason San Francisco ships phrases.
 
 ## Not built yet
 

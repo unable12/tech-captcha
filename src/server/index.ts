@@ -44,7 +44,7 @@ function currentChallenge(pack: Pack, session: Pick<Session, 'rung' | 'escaped'>
 function serve(challenge: Challenge): Served {
   const shuffledChallenge = shuffled(challenge)
   const injection =
-    shuffledChallenge.kind === 'grid' && shuffledChallenge.injection
+    shuffledChallenge.kind !== 'text' && shuffledChallenge.injection
       ? plantInjection(shuffledChallenge)
       : null
 
@@ -52,9 +52,9 @@ function serve(challenge: Challenge): Served {
     challenge: shuffledChallenge,
     wire: toWire(shuffledChallenge, injection?.line ?? null),
     answer:
-      shuffledChallenge.kind === 'grid'
-        ? shuffledChallenge.tiles.flatMap((tile, index) => (tile.correct ? [index] : []))
-        : [],
+      shuffledChallenge.kind === 'text'
+        ? []
+        : shuffledChallenge.tiles.flatMap((tile, index) => (tile.correct ? [index] : [])),
     trapIndex: injection?.index ?? null,
   }
 }
@@ -156,7 +156,7 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
       session.trapIndex !== null ? session.trapped || selected.includes(session.trapIndex) : session.trapped
 
     const passed =
-      session.kind === 'grid'
+      session.kind !== 'text'
         ? sameSet(session.answer, selected)
         : (() => {
             const challenge = currentChallenge(pack, session)

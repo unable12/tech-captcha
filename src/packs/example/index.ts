@@ -47,7 +47,7 @@ export const example: Pack = {
       { id: 'first', name: 'FIRST TRY', flavor: 'Shapes remain straightforward.' },
       { id: 'eventually', name: 'EVENTUALLY', flavor: 'You got there.' },
     ],
-    bot: { id: 'bot', name: 'BOT', flavor: 'You followed instructions you found inside a picture.' },
+    bot: { id: 'bot', name: 'BOT', flavor: 'You followed instructions you found on the page.' },
     visitor: { id: 'visitor', name: 'VISITOR', flavor: 'Fair enough.' },
   },
 }

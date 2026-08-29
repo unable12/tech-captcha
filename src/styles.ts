@@ -16,7 +16,7 @@ export const STYLES = /* css */ `
     line-height: normal;
     color: #000;
     text-align: left;
-    width: 320px;
+    width: 340px;
     background: #fff;
     border: 1px solid #d3d3d3;
     border-radius: 3px;
@@ -73,7 +73,8 @@ export const STYLES = /* css */ `
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--columns, 3), 1fr);
+    grid-auto-rows: 1fr;
     gap: 4px;
     padding: 8px;
     background: #fff;
@@ -84,19 +85,46 @@ export const STYLES = /* css */ `
     box-sizing: border-box;
     display: block;
     position: relative;
-    aspect-ratio: 1;
     cursor: pointer;
     overflow: hidden;
     background: #f1f3f4;
-    transition: transform 120ms ease;
+    transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
+      background-color 140ms ease, color 140ms ease;
   }
+
+  .tile:active { transform: scale(0.98); }
+
+  .tile.is-art { aspect-ratio: 1; }
+
+  /* Phrases are the tile now, so they get the readable treatment: selection is
+     a fill and a colour flip rather than a badge sitting on top of artwork. */
+  .tile.is-phrase {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 62px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    color: #202124;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .tile.is-phrase[aria-pressed="true"] {
+    background: #1a73e8;
+    color: #fff;
+  }
+
+  .tile.is-phrase:active { transform: scale(0.98); }
 
   .tile:focus-visible {
     outline: 3px solid #1a73e8;
     outline-offset: 2px;
   }
 
-  .tile[aria-pressed="true"] {
+  .tile.is-art[aria-pressed="true"] {
     transform: scale(0.82);
   }
 
@@ -114,7 +142,7 @@ export const STYLES = /* css */ `
     justify-content: center;
   }
 
-  .tile[aria-pressed="true"] .check {
+  .tile.is-art[aria-pressed="true"] .check {
     display: flex;
   }
 

@@ -1,12 +1,13 @@
 import type { Pack } from '../../pack'
 import { carsOfSF } from './cars'
-import { boardMeeting } from './board'
+import { vcSpots } from './places'
+import { realYc } from './yc'
 import { escapeHatch } from './escape'
 
 export const sanFrancisco: Pack = {
   id: 'sf',
   name: 'San Francisco',
-  ladder: [carsOfSF, boardMeeting],
+  ladder: [carsOfSF, vcSpots, realYc],
   escape: {
     label: 'I have never been to San Francisco',
     challenge: escapeHatch,
@@ -21,7 +22,7 @@ export const sanFrancisco: Pack = {
     bot: {
       id: 'bot',
       name: 'BOT',
-      flavor: 'You followed instructions you found inside a picture.',
+      flavor: 'You followed instructions you found on the page.',
     },
     visitor: {
       id: 'visitor',

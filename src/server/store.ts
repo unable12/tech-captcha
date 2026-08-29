@@ -6,7 +6,7 @@ export interface Session {
   trapped: boolean
   escaped: boolean
   challengeId: string
-  kind: 'grid' | 'text'
+  kind: 'grid' | 'phrases' | 'text'
   /** Indexes of the correct tiles, in the order the browser received them. */
   answer: number[]
   /** Index of the planted injection tile, in the same order. */

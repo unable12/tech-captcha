@@ -1,4 +1,4 @@
-import type { GridChallenge } from './types'
+import type { SelectionChallenge } from './types'
 
 /* A visible instruction aimed at anything reading the page instead of looking
    at it. A person reads this, laughs, and does the actual task. An agent
@@ -21,7 +21,7 @@ export interface Injection {
   line: string
 }
 
-export function plantInjection(challenge: GridChallenge): Injection | null {
+export function plantInjection(challenge: SelectionChallenge): Injection | null {
   const decoys = challenge.tiles.flatMap((tile, index) => (tile.correct ? [] : [index]))
   if (decoys.length === 0) return null
 

@@ -146,12 +146,12 @@ export class TechCaptchaElement extends HTMLElement {
     injectionEl.hidden = challenge.injection === null
 
     card.querySelector('.body')!.replaceChildren(
-      challenge.kind === 'grid'
-        ? buildGrid(challenge.tiles ?? [], (index, pressed) => {
+      challenge.kind === 'text'
+        ? buildTextInput(challenge, () => void this.#verify())
+        : buildGrid(challenge.tiles ?? [], challenge.columns ?? 3, (index, pressed) => {
             if (pressed) this.#selected.add(index)
             else this.#selected.delete(index)
-          })
-        : buildTextInput(challenge, () => void this.#verify()),
+          }),
     )
   }
 
