@@ -87,16 +87,19 @@ Not published to npm yet. Build it with `npm run build` and serve
 
 ## What it asks
 
-Three challenges, each a grid of phrases:
+Five challenges, each a grid of phrases:
 
 | Challenge | The actual test |
 | --- | --- |
 | **A car you would see in San Francisco** | A Waymo with nobody in it, a Civic with a bin bag taped over the window, a car parked on a hill with its wheels turned. The best decoy is *a convertible with the top down*: a real, ordinary vehicle that is wrong here only because you would have to know it is freezing. |
 | **Somewhere you might run into a VC** | South Park, Sand Hill Road, Buck's of Woodside, Barry's at 6am. Every wrong answer is a tourist trap, which is the joke and also the filter. |
 | **Actually went through YC** | Reddit, Twitch, Heroku, Ginkgo Bioworks and Boom Supersonic against Figma, Notion, Plaid and Robinhood. Every name is a real company. Airbnb and Stripe are absent on purpose: everybody knows those. |
+| **What a diligence team refuses to call revenue** | GMV, bookings, pipeline, signed LOIs, run-rate from your best month. Every founder has called at least one of these revenue, which is what makes the roast land: *"You think GMV is revenue."* |
+| **What in this term sheet is working against you** | 2x participating preferred, full ratchet anti-dilution, redemption rights, a 120-day no-shop, against the market-standard versions of each. The only challenge that asks for judgement rather than recall: anyone who has raised knows full ratchet is a knife, anyone who has not sees fourteen pieces of Latin. |
 
-The ladder gets genuinely harder as it goes. Cars is a warm-up, VC spots needs
-local knowledge, YC needs portfolio knowledge.
+The ladder gets genuinely harder as it goes: a warm-up, then local knowledge,
+then recall, then two rungs of deal literacy. Judgement about a term sheet is
+the hardest thing here to fake.
 
 **No two runs are the same board.** Each challenge holds more tiles than it
 shows and draws a fresh subset every time, so passing it once does not mean you
@@ -338,6 +341,10 @@ fifty lines. Copy it.
 - **The escape hatch is not optional.** Gating a form on local knowledge locks
   out everyone who does not have it. Give your pack a real way out and score it
   as its own thing, not as a failure.
+- **Every challenge must be answerable from knowledge.** A challenge whose
+  answer is "none of them", or that turns on spotting a meta-joke, is a riddle
+  rather than a shibboleth. Someone who fails it learns nothing and feels
+  tricked, which is the opposite of the effect you want.
 
 Start phrases lowercase unless they begin with a proper noun. Ten tiles that
 each open with a capital "A" read as ten shouted sentences; lowercase makes each

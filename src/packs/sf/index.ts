@@ -2,12 +2,17 @@ import type { Pack } from '../../pack'
 import { carsOfSF } from './cars'
 import { vcSpots } from './places'
 import { realYc } from './yc'
+import { revenue } from './revenue'
+import { termSheet } from './termsheet'
 import { escapeHatch } from './escape'
 
 export const sanFrancisco: Pack = {
   id: 'sf',
   name: 'San Francisco',
-  ladder: [carsOfSF, vcSpots, realYc],
+  /* Ordered by how deep the knowledge has to go: a warm-up, then local
+     knowledge, then recall, then two rungs of deal literacy. Judgement about a
+     term sheet is the hardest thing here to fake. */
+  ladder: [carsOfSF, vcSpots, realYc, revenue, termSheet],
   escape: {
     label: 'I have never been to San Francisco',
     challenge: escapeHatch,
