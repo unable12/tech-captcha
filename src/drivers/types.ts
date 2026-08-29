@@ -10,6 +10,8 @@ export interface Outcome {
   attempts?: number
   seconds?: number
   trapped?: boolean
+  /** Names the run's first mistake. Replaces the tier's flavour line. */
+  roast?: string
   /** Present only in server mode. Hand this to your own backend. */
   token?: string
 }

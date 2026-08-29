@@ -13,6 +13,10 @@ export const carsOfSF: PhraseChallenge = {
   prompt: 'Select everything that is',
   subject: 'a car you would see in San Francisco',
   hint: 'Click verify once there are none left.',
+  roast: {
+    picked: 'You think {} is a San Francisco problem.',
+    missed: 'You have never seen {}.',
+  },
   tiles: [
     { id: 'waymo', text: 'A Waymo with nobody in it', correct: true },
     { id: 'civic', text: 'A Civic with a bin bag taped over the window', correct: true },

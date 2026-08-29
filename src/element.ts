@@ -10,6 +10,22 @@ import type { WireChallenge } from './wire'
 
 const DEFAULT_PACK = 'sf'
 
+/* Solving the first rung this fast is the tell. Punishing competence is the
+   joke; the pass has already happened, this only delays the verdict. */
+const SUSPICIOUSLY_FAST_SECONDS = 3
+const PENANCE_SECONDS = 8
+
+const PANELS = {
+  info: [
+    'Why am I seeing this?',
+    'We needed to know whether you are real.',
+    '',
+    'How is my data used?',
+    'We are pre-revenue.',
+  ].join('\n'),
+  audio: ['Audio challenge unavailable.', 'Nobody would agree to record these.'].join('\n'),
+}
+
 const ICONS = {
   reload:
     'M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-8 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
@@ -31,6 +47,8 @@ export class TechCaptchaElement extends HTMLElement {
   #driver: Driver | null = null
   #current: WireChallenge | null = null
   #selected = new Set<number>()
+  #timer: ReturnType<typeof setInterval> | null = null
+  #accused = false
 
   constructor() {
     super()
@@ -39,6 +57,15 @@ export class TechCaptchaElement extends HTMLElement {
 
   connectedCallback(): void {
     if (this.#shadow.childElementCount === 0) void this.#build()
+  }
+
+  disconnectedCallback(): void {
+    this.#stopTimer()
+  }
+
+  #stopTimer(): void {
+    if (this.#timer !== null) clearInterval(this.#timer)
+    this.#timer = null
   }
 
   attributeChangedCallback(name: string, previous: string | null, next: string | null): void {
@@ -71,6 +98,8 @@ export class TechCaptchaElement extends HTMLElement {
   }
 
   async #build(): Promise<void> {
+    this.#stopTimer()
+    this.#accused = false
     this.#driver = this.#makeDriver()
     if (!this.#driver) {
       this.#shadow.replaceChildren()
@@ -107,7 +136,10 @@ export class TechCaptchaElement extends HTMLElement {
     `
 
     card.querySelector('.verify')!.addEventListener('click', () => void this.#verify())
-    card.querySelector('.icon')!.addEventListener('click', () => void this.#run(() => this.#driver!.reload()))
+    const icons = card.querySelectorAll('.icon')
+    icons[0]!.addEventListener('click', () => void this.#run(() => this.#driver!.reload()))
+    icons[1]!.addEventListener('click', () => this.#showPanel(PANELS.audio))
+    icons[2]!.addEventListener('click', () => this.#showPanel(PANELS.info))
     card.querySelector('.link')!.addEventListener('click', () => {
       card.querySelector('.escape')!.remove()
       void this.#run(() => this.#driver!.escape())
@@ -171,7 +203,16 @@ export class TechCaptchaElement extends HTMLElement {
     }
 
     if (outcome.passed) {
-      this.#showResult(outcome)
+      if (
+        !this.#accused &&
+        outcome.attempts === 1 &&
+        (outcome.seconds ?? 0) < SUSPICIOUSLY_FAST_SECONDS
+      ) {
+        this.#accused = true
+        this.#showPenance(outcome)
+      } else {
+        this.#showResult(outcome)
+      }
       return
     }
 
@@ -190,9 +231,9 @@ export class TechCaptchaElement extends HTMLElement {
     const card = this.#shadow.querySelector('.card')!
     card.querySelector('.prompt')!.textContent = 'Verified. You are'
     card.querySelector('.subject')!.textContent = tier.name
-    card.querySelector('.hint')!.textContent = tier.flavor
+    card.querySelector('.hint')!.textContent = outcome.roast ?? tier.flavor
 
-    const canvas = drawTierCard(tier, attempts, seconds)
+    const canvas = drawTierCard(tier, attempts, seconds, outcome.roast)
     canvas.className = 'tier-card'
     canvas.setAttribute('role', 'img')
     canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
@@ -219,10 +260,75 @@ export class TechCaptchaElement extends HTMLElement {
           seconds,
           tier: tier.id,
           trapped: outcome.trapped ?? false,
+          ...(outcome.roast ? { roast: outcome.roast } : {}),
           ...(outcome.token ? { token: outcome.token } : {}),
         },
       }),
     )
+  }
+
+  /** The two footer icons everybody clicks and nothing has ever done. */
+  #showPanel(text: string): void {
+    const card = this.#shadow.querySelector('.card')
+    if (!card || !this.#current) return
+
+    const panel = document.createElement('div')
+    panel.className = 'panel'
+    panel.textContent = text
+    card.querySelector('.body')!.replaceChildren(panel)
+    // The planted line belongs to the challenge, not to this panel.
+    ;(card.querySelector('.injection') as HTMLDivElement).hidden = true
+
+    const status = card.querySelector('.status') as HTMLDivElement
+    status.textContent = ''
+    const verify = card.querySelector('.verify') as HTMLButtonElement
+    verify.textContent = 'Back'
+    verify.onclick = () => {
+      verify.textContent = 'Verify'
+      verify.onclick = null
+      this.#render(this.#current!)
+    }
+  }
+
+  /** Accuses the user of being a machine for being good at this, then makes
+      them sit still. The verification already succeeded either way. */
+  #showPenance(outcome: Outcome): void {
+    const card = this.#shadow.querySelector('.card')!
+    card.querySelector('.prompt')!.textContent = 'That was too fast'
+    card.querySelector('.subject')!.textContent = 'No human knows that'
+    card.querySelector('.hint')!.textContent =
+      'Prove you are human by waiting, like a person would.'
+    ;(card.querySelector('.injection') as HTMLDivElement).hidden = true
+    card.querySelector('.escape')?.remove()
+
+    const countdown = document.createElement('div')
+    countdown.className = 'penance'
+    countdown.setAttribute('role', 'timer')
+    card.querySelector('.body')!.replaceChildren(countdown)
+
+    const verify = card.querySelector('.verify') as HTMLButtonElement
+    verify.disabled = true
+
+    let left = PENANCE_SECONDS
+    const tick = (): void => {
+      countdown.textContent = String(left)
+      if (left > 0) {
+        left--
+        return
+      }
+      this.#stopTimer()
+      countdown.textContent = '0'
+      verify.disabled = false
+      verify.textContent = 'Continue'
+      verify.onclick = () => {
+        verify.onclick = null
+        verify.textContent = 'Verify'
+        this.#showResult(outcome)
+      }
+    }
+
+    tick()
+    this.#timer = setInterval(tick, 1000)
   }
 
   /** Expired or exhausted sessions are recoverable, so offer the way back

@@ -41,7 +41,8 @@ either way.
 
 ```js
 document.querySelector('tech-captcha').addEventListener('verified', (event) => {
-  // { mode: 'local', attempts: 2, seconds: 8.4, tier: 'local', trapped: false }
+  // { mode: 'local', attempts: 2, seconds: 8.4, tier: 'local', trapped: false,
+  //   roast: 'You thought Figma went through YC.' }
   // server mode adds: token: 'eyJwYWNr…'
   console.log(event.detail)
 })
@@ -123,7 +124,22 @@ easier one."* land. Cars is warm-up, VC spots needs local knowledge, YC needs
 portfolio knowledge.
 
 Fail one and you get *"Let's try an easier one."* It is not easier. That happens
-from the very first failure.
+from the very first failure, and the claim degrades as you go:
+
+> "Let's try an easier one." → "Let's try an easier one." → "This one is
+> easier." → "We are running out of easier ones." → "This is the easiest one we
+> have."
+
+Solve the first rung in under three seconds and it accuses you instead:
+
+> **That was too fast**
+> No human knows that. Prove you are human by waiting, like a person would.
+
+...with an eight second countdown and Verify disabled. The verification already
+succeeded; this only delays the verdict, so it is theatre rather than a control.
+
+The ⓘ and headphone icons in the footer do something now, which is more than
+they do on the real thing.
 
 ### Decoys have to be real
 
@@ -187,6 +203,18 @@ Tiers belong to the pack, so a London pack would name its own. San Francisco's:
 | `BOT` | Followed the injection. Sticky, and it overrides everything else. |
 
 Passing draws a 1200x630 PNG you can download and post.
+
+### It names what you got wrong
+
+A card everyone gets is a card nobody posts. The result carries the run's
+**first** mistake, phrased by whichever challenge caught it:
+
+> **TRANSPLANT**
+> You thought Figma went through YC.
+
+Templates live on the challenge (`roast.picked` / `roast.missed`), so a pack
+writes its own insults. A clean first-attempt pass has nothing to report and
+falls back to the tier's flavour line.
 
 ## Writing a pack
 

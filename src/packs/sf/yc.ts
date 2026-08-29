@@ -16,6 +16,10 @@ export const realYc: PhraseChallenge = {
   prompt: 'Select the ones that',
   subject: 'actually went through YC',
   hint: 'The obvious ones are not on this list.',
+  roast: {
+    picked: 'You thought {} went through YC.',
+    missed: 'You did not know {} did.',
+  },
   tiles: [
     { id: 'reddit', text: 'Reddit', correct: true },
     { id: 'twitch', text: 'Twitch', correct: true },

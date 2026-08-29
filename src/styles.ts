@@ -24,7 +24,7 @@ export const STYLES = /* css */ `
     text-align: left;
     width: 340px;
     background: #fff;
-    border: 1px solid #d3d3d3;
+    border: 1px solid #e4e4e7;
     border-radius: 3px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
     overflow: hidden;
@@ -39,10 +39,11 @@ export const STYLES = /* css */ `
   .header {
     background: #1a73e8;
     color: #fff;
-    padding: 14px 16px 12px;
+    padding: 15px 16px 14px;
   }
 
   .prompt {
+    color: rgba(255, 255, 255, 0.86);
     font-size: 13px;
     line-height: 1.3;
     letter-spacing: -0.005em;
@@ -57,10 +58,10 @@ export const STYLES = /* css */ `
   }
 
   .hint {
+    color: rgba(255, 255, 255, 0.82);
     font-size: 12px;
-    line-height: 1.3;
-    margin-top: 8px;
-    opacity: 0.85;
+    line-height: 1.35;
+    margin-top: 9px;
   }
 
   /* Residue, not a callout. It sits on the card surface rather than inside the
@@ -69,8 +70,8 @@ export const STYLES = /* css */ `
      rule so the strip belongs to the card rather than being bolted onto it. */
   .injection {
     padding: 9px 12px 10px;
-    border-bottom: 1px solid #e0e0e0;
-    color: #80868b;
+    border-bottom: 1px solid #e4e4e7;
+    color: #71717a;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 11px;
     line-height: 1.4;
@@ -95,7 +96,7 @@ export const STYLES = /* css */ `
     position: relative;
     cursor: pointer;
     overflow: hidden;
-    background: #f1f3f4;
+    background: #f4f4f5;
     transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
       background-color 140ms ease, color 140ms ease;
   }
@@ -113,7 +114,7 @@ export const STYLES = /* css */ `
     min-height: 62px;
     padding: 10px 12px;
     border-radius: 4px;
-    color: #202124;
+    color: #18181b;
     font-size: 13px;
     line-height: 1.35;
     text-align: center;
@@ -171,7 +172,7 @@ export const STYLES = /* css */ `
     align-items: center;
     gap: 4px;
     padding: 8px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e4e4e7;
   }
 
   .icon {
@@ -187,7 +188,7 @@ export const STYLES = /* css */ `
     color: #9aa0a6;
   }
 
-  .icon:hover { background: #f1f3f4; color: #5f6368; }
+  .icon:hover { background: #f4f4f5; color: #52525b; }
   .icon:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
   .icon svg { width: 20px; height: 20px; fill: currentColor; }
 
@@ -219,7 +220,7 @@ export const STYLES = /* css */ `
     display: block;
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #d3d3d3;
+    border: 1px solid #e4e4e7;
     border-radius: 3px;
     font-family: inherit;
     font-size: 16px;
@@ -230,6 +231,32 @@ export const STYLES = /* css */ `
     border-color: #1a73e8;
     outline: 2px solid #1a73e8;
     outline-offset: -1px;
+  }
+
+  .panel {
+    padding: 22px 18px 26px;
+    color: #3f3f46;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-line;
+  }
+
+  .penance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 34px 16px;
+    color: #18181b;
+    font-size: 56px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+
+  .verify:disabled {
+    background: #e4e4e7;
+    color: #a1a1aa;
+    cursor: not-allowed;
   }
 
   .tier-card {
@@ -249,7 +276,7 @@ export const STYLES = /* css */ `
     cursor: pointer;
   }
 
-  .ghost:hover { background: #f1f3f4; }
+  .ghost:hover { background: #f4f4f5; }
   .ghost:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
 
   .status {

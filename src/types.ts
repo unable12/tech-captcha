@@ -32,6 +32,9 @@ interface SelectionBase extends ChallengeBase {
   injection?: boolean
   /** Grid columns. Short phrases want 3, sentences want 1. Defaults to 3. */
   columns?: 1 | 2 | 3
+  /** Result-card roast templates. `{}` becomes the offending tile's text.
+      Without this a failed run just gets the tier's generic flavour line. */
+  roast?: { picked: string; missed: string }
 }
 
 export interface GridChallenge extends SelectionBase {

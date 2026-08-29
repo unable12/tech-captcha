@@ -15,6 +15,7 @@ interface AttemptResponse {
   attempts?: number
   trapped?: boolean
   token?: string
+  roast?: string | null
   error?: string
 }
 
@@ -71,6 +72,7 @@ export class RemoteDriver implements Driver {
       seconds: (performance.now() - this.#startedAt) / 1000,
       trapped: data.trapped ?? false,
       token: data.token,
+      ...(data.roast ? { roast: data.roast } : {}),
     }
   }
 

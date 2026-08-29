@@ -55,6 +55,36 @@ const second = await verify(passed.body.token)
 check('token verifies once', first !== null && first.tier === 'pre-2008', JSON.stringify(first))
 check('token cannot be replayed', second === null)
 
+// 5b. Escalation copy and the roast.
+// Selecting a decoy can land on the planted injection tile, which makes
+// `trapped` sticky and replaces every later status with "Good bot." Any test
+// that wants a plain wrong answer has to route around the trap.
+const decoyAwayFromTrap = (challenge) => {
+  const trap = Number(challenge.injection.match(/square (\d+)/)[1]) - 1
+  return challenge.tiles.findIndex((t, i) => WRONG.includes(t.label) && i !== trap)
+}
+
+const ladder = await post('session', {})
+const lines = []
+for (let i = 0; i < 4; i++) {
+  const r = await post('attempt', { session: ladder.body.session, action: 'answer', selected: [] })
+  lines.push(r.body.status)
+}
+check('escalation copy escalates', new Set(lines).size >= 3, lines.join(' | '))
+
+const roasted = await post('session', {})
+const decoy = decoyAwayFromTrap(roasted.body.challenge)
+const decoyLabel = roasted.body.challenge.tiles[decoy].label
+await post('attempt', { session: roasted.body.session, action: 'answer', selected: [decoy] })
+await post('attempt', { session: roasted.body.session, action: 'answer', selected: [] })
+const ycTiles = (await post('attempt', { session: roasted.body.session, action: 'answer', selected: [] })).body.challenge.tiles
+const YC = ['Reddit', 'Twitch', 'Heroku', 'Ginkgo Bioworks', 'Boom Supersonic']
+const ycPick = ycTiles.map((t, i) => (YC.includes(t.label) ? i : -1)).filter((i) => i >= 0)
+const finished = await post('attempt', { session: roasted.body.session, action: 'answer', selected: ycPick })
+const expected = `You think ${decoyLabel[0].toLowerCase()}${decoyLabel.slice(1)} is a San Francisco problem.`
+check('roast names the tile that was picked', finished.body.roast === expected, finished.body.roast)
+check('roast keeps the FIRST mistake, not the last', !String(finished.body.roast).includes('VC'))
+
 // 6. Forgery.
 const [body] = passed.body.token.split('.')
 check('bad signature rejected', (await verify(`${body}.AAAA`)) === null)

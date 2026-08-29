@@ -5,10 +5,17 @@ export interface Session {
   attempts: number
   trapped: boolean
   escaped: boolean
+  failures: number
+  /** First mistake of the run, kept for the result card. */
+  roast: string | null
   challengeId: string
   kind: 'grid' | 'phrases' | 'text'
   /** Indexes of the correct tiles, in the order the browser received them. */
   answer: number[]
+  /** Tile ids in the order the browser received them. Selections come back as
+      indexes into this, so anything that needs to name a tile has to map
+      through it rather than through the pack's own order. */
+  tileIds: string[]
   /** Index of the planted injection tile, in the same order. */
   trapIndex: number | null
   expiresAt: number

@@ -1,9 +1,10 @@
 import type { Pack } from '../pack'
-import type { Challenge } from '../types'
+import type { Challenge, SelectionChallenge } from '../types'
 import { shuffled } from '../types'
 import { plantInjection } from '../injection'
 import { toWire, type WireChallenge } from '../wire'
 import { pickTier } from '../tiers'
+import { escalation, roastFor } from '../copy'
 import { MemoryStore, type Session, type SessionStore } from './store'
 import { randomId, readToken, signToken, type TokenPayload } from './token'
 
@@ -27,6 +28,7 @@ interface Served {
   wire: WireChallenge
   answer: number[]
   trapIndex: number | null
+  tileIds: string[]
   challenge: Challenge
 }
 
@@ -56,7 +58,18 @@ function serve(challenge: Challenge): Served {
         ? []
         : shuffledChallenge.tiles.flatMap((tile, index) => (tile.correct ? [index] : [])),
     trapIndex: injection?.index ?? null,
+    tileIds: shuffledChallenge.kind === 'text' ? [] : shuffledChallenge.tiles.map((t) => t.id),
   }
+}
+
+/** Rebuilds the challenge in the order the browser saw it, so a selection index
+    resolves to the tile that browser actually clicked. */
+function inServedOrder(challenge: Challenge, tileIds: string[]): SelectionChallenge | null {
+  if (challenge.kind === 'text') return null
+  const byId = new Map(challenge.tiles.map((tile) => [tile.id, tile]))
+  const tiles = tileIds.map((id) => byId.get(id)).filter(Boolean)
+  if (tiles.length !== tileIds.length) return null
+  return { ...challenge, tiles } as SelectionChallenge
 }
 
 function sameSet(a: readonly number[], b: readonly number[]): boolean {
@@ -92,6 +105,7 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
       kind: served.challenge.kind,
       answer: served.answer,
       trapIndex: served.trapIndex,
+      tileIds: served.tileIds,
       expiresAt: Date.now() + sessionTtlMs,
     })
   }
@@ -108,10 +122,13 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
       attempts: 0,
       trapped: false,
       escaped: false,
+      failures: 0,
+      roast: null,
       challengeId: served.challenge.id,
       kind: served.challenge.kind,
       answer: served.answer,
       trapIndex: served.trapIndex,
+      tileIds: served.tileIds,
       expiresAt: 0,
     }, served)
 
@@ -183,13 +200,17 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
         },
         secret,
       )
-      return json({ passed: true, token, tier, attempts })
+      return json({ passed: true, token, tier, attempts, roast: session.roast })
     }
 
+    const failures = session.failures + 1
+    const asServed = inServedOrder(currentChallenge(pack, session), session.tileIds)
     const next: Session = {
       ...session,
       attempts,
       trapped,
+      failures,
+      roast: session.roast ?? (asServed ? roastFor(asServed, selected) : null),
       rung: session.escaped ? session.rung : Math.min(session.rung + 1, pack.ladder.length - 1),
     }
     const served = serve(currentChallenge(pack, next))
@@ -198,7 +219,7 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
     return json({
       passed: false,
       trapped,
-      status: trapped ? 'Good bot.' : "Let's try an easier one.",
+      status: trapped ? 'Good bot.' : escalation(failures),
       challenge: served.wire,
     })
   }

@@ -4,6 +4,7 @@ import type { Challenge } from '../types'
 import { gradeSelection, shuffled } from '../types'
 import { plantInjection } from '../injection'
 import { pickTier } from '../tiers'
+import { escalation, roastFor } from '../copy'
 import { toWire, type WireChallenge } from '../wire'
 
 /* Answers live in the page. Fine for entertainment, useless as a gate: anyone
@@ -18,6 +19,8 @@ export class LocalDriver implements Driver {
   #rung = 0
   #escaped = false
   #trapped = false
+  #failures = 0
+  #roast: string | null = null
   #startedAt = 0
 
   constructor(pack: Pack) {
@@ -64,9 +67,14 @@ export class LocalDriver implements Driver {
         attempts: this.#attempts,
         seconds: (performance.now() - this.#startedAt) / 1000,
         trapped: this.#trapped,
+        ...(this.#roast ? { roast: this.#roast } : {}),
       }
     }
 
+    this.#failures++
+    if (this.#roast === null && this.#current.kind !== 'text') {
+      this.#roast = roastFor(this.#current, selected)
+    }
     if (!this.#escaped) {
       this.#rung = Math.min(this.#rung + 1, this.#pack.ladder.length - 1)
     }
@@ -74,7 +82,7 @@ export class LocalDriver implements Driver {
     return {
       passed: false,
       trapped: this.#trapped,
-      status: this.#trapped ? 'Good bot.' : "Let's try an easier one.",
+      status: this.#trapped ? 'Good bot.' : escalation(this.#failures),
       challenge: this.#serve(
         this.#escaped ? this.#pack.escape.challenge : this.#pack.ladder[this.#rung]!,
       ),

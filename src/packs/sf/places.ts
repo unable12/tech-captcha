@@ -10,6 +10,10 @@ export const vcSpots: PhraseChallenge = {
   prompt: 'Select everywhere you might',
   subject: 'run into a VC',
   hint: 'Three of these are for tourists.',
+  roast: {
+    picked: 'You would look for a VC at {}.',
+    missed: 'You have never been to {}.',
+  },
   tiles: [
     { id: 'south-park', text: 'South Park', correct: true },
     { id: 'blue-bottle', text: 'Blue Bottle', correct: true },
