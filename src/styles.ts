@@ -139,6 +139,26 @@ export const STYLES = /* css */ `
   .icon:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
   .icon svg { width: 20px; height: 20px; fill: currentColor; }
 
+  .tier-card {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ghost {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-block;
+    color: #5f6368;
+    font-size: 14px;
+    padding: 9px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .ghost:hover { background: #f1f3f4; }
+  .ghost:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+
   .status {
     flex: 1;
     padding: 0 6px;

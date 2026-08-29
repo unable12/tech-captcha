@@ -1,6 +1,8 @@
 import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
+import { drawTierCard, downloadCard } from './render/tier-card'
 import { LADDER, shuffled } from './challenges'
+import { tierFor } from './tiers'
 import { grade, type Challenge } from './types'
 
 const ICONS = {
@@ -23,6 +25,7 @@ export class TechCaptchaElement extends HTMLElement {
   #selected = new Set<number>()
   #attempts = 0
   #rung = 0
+  #startedAt = 0
 
   constructor() {
     super()
@@ -38,6 +41,10 @@ export class TechCaptchaElement extends HTMLElement {
   }
 
   #build(): void {
+    this.#attempts = 0
+    this.#rung = 0
+    this.#startedAt = performance.now()
+
     const style = document.createElement('style')
     style.textContent = STYLES
 
@@ -49,7 +56,7 @@ export class TechCaptchaElement extends HTMLElement {
         <div class="subject"></div>
         <div class="hint"></div>
       </div>
-      <div class="grid-slot"></div>
+      <div class="body"></div>
       <div class="footer">
         ${icon(ICONS.reload, 'Get a new challenge')}
         ${icon(ICONS.audio, 'Get an audio challenge')}
@@ -62,7 +69,7 @@ export class TechCaptchaElement extends HTMLElement {
     card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
     card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge))
 
-    this.#shadow.append(style, card)
+    this.#shadow.replaceChildren(style, card)
     this.#serve(LADDER[0]!)
   }
 
@@ -75,8 +82,7 @@ export class TechCaptchaElement extends HTMLElement {
     card.querySelector('.subject')!.textContent = this.#challenge.subject
     card.querySelector('.hint')!.textContent = this.#challenge.hint
 
-    const slot = card.querySelector('.grid-slot')!
-    slot.replaceChildren(
+    card.querySelector('.body')!.replaceChildren(
       buildGrid(this.#challenge.tiles, (index, pressed) => {
         if (pressed) this.#selected.add(index)
         else this.#selected.delete(index)
@@ -86,10 +92,9 @@ export class TechCaptchaElement extends HTMLElement {
 
   #verify(): void {
     this.#attempts++
-    const result = grade(this.#challenge, this.#selected)
     const status = this.#shadow.querySelector('.status') as HTMLDivElement
 
-    if (result === 'fail') {
+    if (grade(this.#challenge, this.#selected) === 'fail') {
       // Always claims to be easier. Always is not.
       this.#rung = Math.min(this.#rung + 1, LADDER.length - 1)
       status.textContent = "Let's try an easier one."
@@ -98,12 +103,38 @@ export class TechCaptchaElement extends HTMLElement {
       return
     }
 
-    status.textContent = ''
+    this.#showResult()
+  }
+
+  #showResult(): void {
+    const seconds = (performance.now() - this.#startedAt) / 1000
+    const tier = tierFor(this.#attempts)
+    const card = this.#shadow.querySelector('.card')!
+
+    card.querySelector('.prompt')!.textContent = 'Verified. You are'
+    card.querySelector('.subject')!.textContent = tier.name
+    card.querySelector('.hint')!.textContent = tier.flavor
+
+    const canvas = drawTierCard(tier, this.#attempts, seconds)
+    canvas.className = 'tier-card'
+    canvas.setAttribute('role', 'img')
+    canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
+    card.querySelector('.body')!.replaceChildren(canvas)
+
+    const footer = card.querySelector('.footer')!
+    footer.innerHTML = `
+      <button class="ghost" type="button">Try again</button>
+      <div class="status"></div>
+      <button class="verify" type="button">Download card</button>
+    `
+    footer.querySelector('.verify')!.addEventListener('click', () => downloadCard(canvas, tier))
+    footer.querySelector('.ghost')!.addEventListener('click', () => this.#build())
+
     this.dispatchEvent(
       new CustomEvent('verified', {
         bubbles: true,
         composed: true,
-        detail: { attempts: this.#attempts },
+        detail: { attempts: this.#attempts, seconds, tier: tier.id },
       }),
     )
   }
