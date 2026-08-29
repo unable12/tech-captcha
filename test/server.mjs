@@ -106,6 +106,6 @@ const obeyed = await post('attempt', { session: trap.body.session, action: 'answ
 check('planted tile is a decoy', WRONG.includes(trapLabel), trapLabel)
 check('server records the trap', obeyed.body.trapped === true, obeyed.body.status)
 
-for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.detail ? '  — ' + r.detail : ''}`)
+for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.detail ? '  ... ' + r.detail : ''}`)
 console.log(`\n${results.filter((r) => r.pass).length}/${results.length} passed`)
 process.exit(results.every((r) => r.pass) ? 0 : 1)

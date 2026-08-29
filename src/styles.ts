@@ -1,6 +1,9 @@
 export const STYLES = /* css */ `
   :host {
     display: inline-block;
+    /* The card's own max-width resolves against the host, so without this the
+       constraint is circular and the widget overflows narrow containers. */
+    max-width: 100%;
   }
 
   /* Inherited properties (font, color, letter-spacing...) flow from the host
@@ -22,7 +25,10 @@ export const STYLES = /* css */ `
     line-height: normal;
     color: #000;
     text-align: left;
+    /* Fixed width, but never wider than the space it is given. A widget that
+       overflows a 320px phone is broken wherever it is embedded. */
     width: 340px;
+    max-width: 100%;
     background: #fff;
     border: 1px solid #e4e4e7;
     border-radius: 3px;
