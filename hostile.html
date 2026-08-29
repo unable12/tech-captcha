@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tech-captcha — style isolation test</title>
+    <style>
+      /* Deliberately hostile. If any of this reaches the widget, shadow-DOM
+         isolation is broken. Kept off the main demo because it is a regression
+         check, not a showcase. */
+      * { font-family: "Comic Sans MS", cursive !important; }
+      button { background: hotpink !important; border: 4px dotted lime !important; }
+      div { line-height: 3 !important; }
+      input { transform: rotate(2deg) !important; }
+
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f5f5f7; }
+      .page { text-align: center; padding: 40px 20px; }
+      .widget { display: inline-block; line-height: normal !important; }
+      .note { margin-top: 24px; max-width: 340px; font-size: 13px; color: #6e6e73; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Style isolation test</h1>
+      <div class="widget"><tech-captcha pack="sf"></tech-captcha></div>
+      <div class="note">
+        This page forces Comic Sans, hot-pink buttons, dotted lime borders and
+        triple line-height onto every element. The widget should be untouched.
+      </div>
+    </div>
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>

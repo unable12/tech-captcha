@@ -116,10 +116,26 @@ Three challenges, each a grid of phrases:
 | --- | --- |
 | A car you would see in San Francisco | A Waymo with nobody in it, a Civic with a bin bag taped over the window, a parked car with the glovebox left open. The wrong answers are a yellow cab, a stretch limo and a pickup with a gun rack: vehicles that exist, just not here. |
 | Somewhere you might run into a VC | South Park, Sand Hill Road, Sightglass, Barry's at 6am. Every wrong answer is a tourist trap, which is the joke and also the filter. |
-| Actually YC companies | Six real ones against three invented ones. Real YC names are absurd enough that the fakes are hard to pick out. |
+| Actually went through YC | Reddit, Twitch, Heroku, Ginkgo Bioworks and Boom Supersonic against Figma, Notion, Plaid and Robinhood. Every name is a real company. Airbnb and Stripe are absent on purpose: everybody knows those. |
+
+The ladder gets genuinely harder as it goes, which is what makes *"Let's try an
+easier one."* land. Cars is warm-up, VC spots needs local knowledge, YC needs
+portfolio knowledge.
 
 Fail one and you get *"Let's try an easier one."* It is not easier. That happens
 from the very first failure.
+
+### Decoys have to be real
+
+The YC challenge first shipped with invented company names as the wrong
+answers, which tested nothing: spotting a made-up word is a word-shape task, the
+same perceptual shortcut the pictures relied on. Every decoy is now a real,
+well-known company that did not do YC, so the only way through is knowing the
+portfolio. Apply that to any pack you write, since a decoy a stranger can
+eliminate on sight is not a decoy.
+
+Every tile also has to be beyond dispute. A name people argue about is a broken
+answer key, not a hard question.
 
 ### Why phrases and not pictures
 
@@ -268,14 +284,16 @@ someone hosting a pack of their own on a CDN.
 
 ```bash
 npm install
-npm run dev        # demo page, deliberately hostile page CSS to prove isolation
+npm run dev        # / is the demo, /hostile.html is the style isolation check
 npm run build
 npm run typecheck
 npm test           # builds, then exercises the server end to end
 ```
 
-The demo runs the real server handler behind Vite, so the local/server toggle on
-that page is hitting genuine endpoints.
+The demo runs the real server handler behind Vite, so the local/server toggle at
+the bottom of that page is hitting genuine endpoints. `/hostile.html` forces
+Comic Sans, hot-pink buttons and triple line-height onto every element; the
+widget should be untouched.
 
 ## License
 

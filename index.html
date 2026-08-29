@@ -3,74 +3,199 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>tech-captcha — demo</title>
+    <title>tech-captcha</title>
     <style>
-      /* Deliberately hostile page styles. If any of this reaches the widget,
-         shadow-DOM isolation is broken. */
-      * { font-family: "Comic Sans MS", cursive !important; }
-      button { background: hotpink !important; border: 4px dotted lime !important; }
-      div { line-height: 3 !important; }
+      :root {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --ink: #1d1d1f;
+        --muted: #6e6e73;
+        --line: #e3e3e6;
+        /* 340px widget + 28px padding either side. */
+        --col: 396px;
+      }
+
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: #f5f5f7;
-        color: #1d1d1f;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 48px 20px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
-      .page { text-align: center; padding: 40px 20px; }
-      h1 { margin: 0 0 4px; font-size: 24px; }
-      p.sub { margin: 0 0 28px; color: #6e6e73; }
-      .widget { display: inline-block; line-height: normal !important; }
-      .note { margin-top: 28px; font-size: 13px; color: #6e6e73; max-width: 340px; }
-      .packs { margin-top: 20px; display: flex; gap: 8px; justify-content: center; }
-      .packs button { font-size: 12px; padding: 6px 10px; cursor: pointer; }
+
+      /* Content column is exactly the widget's width, so nothing in the form
+         floats a few pixels off the captcha's edges. */
+      .card {
+        width: var(--col);
+        padding: 28px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+
+      .sub {
+        margin: 6px 0 24px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      input[type="email"] {
+        width: 100%;
+        height: 42px;
+        padding: 0 12px;
+        margin-bottom: 20px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfbfc;
+        color: var(--ink);
+        font: inherit;
+        font-size: 15px;
+        transition: border-color 140ms ease, background-color 140ms ease;
+      }
+
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #1d1d1f;
+        background: var(--surface);
+      }
+
+      .continue {
+        width: 100%;
+        height: 44px;
+        margin-top: 20px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), opacity 140ms ease;
+      }
+
+      .continue:active { transform: scale(0.985); }
+
+      .continue:disabled {
+        background: #e8e8ed;
+        color: #a1a1a6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result {
+        width: var(--col);
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11.5px;
+        line-height: 1.6;
+        /* The payload is pretty-printed; without this it collapses to one run. */
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      footer button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--muted);
+        font: inherit;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      footer button[aria-pressed="true"] {
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      footer a { color: var(--muted); text-underline-offset: 3px; }
     </style>
   </head>
   <body>
-    <div class="page">
+    <main class="card">
       <h1>Create your account</h1>
       <p class="sub">One more step. It's a formality.</p>
 
-      <div class="widget">
-        <tech-captcha pack="sf"></tech-captcha>
-      </div>
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@company.com" autocomplete="email" />
 
-      <div class="packs">
-        <button type="button" data-pack="sf">sf</button>
-        <button type="button" data-pack="example">example</button>
-        <button type="button" data-pack="nonsense">nonsense (falls back)</button>
-      </div>
+      <tech-captcha pack="sf"></tech-captcha>
 
-      <div class="packs">
-        <button type="button" data-mode="local">local mode</button>
-        <button type="button" data-mode="server">server mode</button>
-      </div>
+      <button class="continue" type="button" disabled>Continue</button>
+    </main>
 
-      <div class="note">
-        This page sets Comic Sans, hot-pink buttons and triple line-height on
-        every element on purpose. The widget is unaffected, which is the point:
-        it renders in a shadow root and drops into a hostile page unchanged.
-      </div>
-    </div>
+    <div class="result" id="result">Waiting for a `verified` event.</div>
+
+    <footer>
+      <span>Mode</span>
+      <button type="button" data-mode="local" aria-pressed="true">local</button>
+      <button type="button" data-mode="server" aria-pressed="false">server</button>
+      <span>·</span>
+      <a href="/hostile.html">style isolation test</a>
+    </footer>
 
     <script type="module" src="/src/index.ts"></script>
     <script>
       const captcha = document.querySelector('tech-captcha')
-      document.querySelectorAll('.packs button').forEach((button) => {
-        button.addEventListener('click', () => {
-          captcha.setAttribute('pack', button.dataset.pack)
-        })
+      const result = document.getElementById('result')
+      const cont = document.querySelector('.continue')
+
+      captcha.addEventListener('verified', (event) => {
+        result.textContent = JSON.stringify(event.detail, null, 2)
+        cont.disabled = false
       })
+
       document.querySelectorAll('[data-mode]').forEach((button) => {
         button.addEventListener('click', () => {
-          if (button.dataset.mode === 'server') captcha.setAttribute('endpoint', '/captcha')
+          const server = button.dataset.mode === 'server'
+          if (server) captcha.setAttribute('endpoint', '/captcha')
           else captcha.removeAttribute('endpoint')
+
+          document.querySelectorAll('[data-mode]').forEach((other) => {
+            other.setAttribute('aria-pressed', String(other === button))
+          })
+          result.textContent = 'Waiting for a `verified` event.'
+          cont.disabled = true
         })
-      })
-      captcha.addEventListener('verified', (event) => {
-        console.log('verified', event.detail)
       })
     </script>
   </body>

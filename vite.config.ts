@@ -41,6 +41,7 @@ function demoCaptchaServer(): Plugin {
 export default defineConfig({
   plugins: [demoCaptchaServer()],
   build: {
+    // hostile.html is dev-only; the library build has a single entry.
     lib: {
       entry: 'src/index.ts',
       name: 'TechCaptcha',
