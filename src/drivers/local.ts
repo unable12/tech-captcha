@@ -6,6 +6,7 @@ import { plantInjection } from '../injection'
 import { pickTier } from '../tiers'
 import { escalation, roastFor } from '../copy'
 import { toWire, type WireChallenge } from '../wire'
+import { drawLadder } from '../ladder'
 
 /* Answers live in the page. Fine for entertainment, useless as a gate: anyone
    can read them out of the bundle. Use the server driver if it matters. */
@@ -13,6 +14,7 @@ export class LocalDriver implements Driver {
   readonly mode = 'local' as const
 
   #pack: Pack
+  #ladder: Challenge[]
   #current: Challenge
   #trapIndex: number | null = null
   #attempts = 0
@@ -25,13 +27,14 @@ export class LocalDriver implements Driver {
 
   constructor(pack: Pack) {
     this.#pack = pack
-    this.#current = pack.ladder[0]!
+    this.#ladder = drawLadder(pack)
+    this.#current = this.#ladder[0]!
   }
 
   async start(): Promise<{ challenge: WireChallenge; escapeLabel: string }> {
     this.#startedAt = performance.now()
     return {
-      challenge: this.#serve(this.#pack.ladder[0]!),
+      challenge: this.#serve(this.#ladder[0]!),
       escapeLabel: this.#pack.escape.label,
     }
   }
@@ -76,7 +79,7 @@ export class LocalDriver implements Driver {
       this.#roast = roastFor(this.#current, selected)
     }
     if (!this.#escaped) {
-      this.#rung = Math.min(this.#rung + 1, this.#pack.ladder.length - 1)
+      this.#rung = Math.min(this.#rung + 1, this.#ladder.length - 1)
     }
 
     return {
@@ -84,7 +87,7 @@ export class LocalDriver implements Driver {
       trapped: this.#trapped,
       status: this.#trapped ? 'Good bot.' : escalation(this.#failures),
       challenge: this.#serve(
-        this.#escaped ? this.#pack.escape.challenge : this.#pack.ladder[this.#rung]!,
+        this.#escaped ? this.#pack.escape.challenge : this.#ladder[this.#rung]!,
       ),
     }
   }

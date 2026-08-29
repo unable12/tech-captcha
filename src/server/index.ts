@@ -3,6 +3,7 @@ import type { Challenge, SelectionChallenge } from '../types'
 import { sample } from '../types'
 import { plantInjection } from '../injection'
 import { toWire, type WireChallenge } from '../wire'
+import { challengeById, drawLadder } from '../ladder'
 import { pickTier } from '../tiers'
 import { escalation, roastFor } from '../copy'
 import { MemoryStore, type Session, type SessionStore } from './store'
@@ -39,8 +40,12 @@ function json(body: unknown, status = 200): Response {
   })
 }
 
-function currentChallenge(pack: Pack, session: Pick<Session, 'rung' | 'escaped'>): Challenge {
-  return session.escaped ? pack.escape.challenge : pack.ladder[session.rung]!
+function currentChallenge(
+  pack: Pack,
+  session: Pick<Session, 'rung' | 'rungIds' | 'escaped'>,
+): Challenge {
+  if (session.escaped) return pack.escape.challenge
+  return challengeById(pack, session.rungIds[session.rung] ?? '') ?? pack.ladder[0]!
 }
 
 function serve(challenge: Challenge): Served {
@@ -115,10 +120,12 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
     const pack = (body.pack && byId.get(body.pack)) || defaultPack
 
     const id = randomId()
-    const served = serve(pack.ladder[0]!)
+    const rungIds = drawLadder(pack).map((challenge) => challenge.id)
+    const served = serve(challengeById(pack, rungIds[0]!) ?? pack.ladder[0]!)
     await persist(id, {
       pack: pack.id,
       rung: 0,
+      rungIds,
       attempts: 0,
       trapped: false,
       escaped: false,
@@ -211,7 +218,9 @@ export function createCaptchaServer(options: CaptchaServerOptions) {
       trapped,
       failures,
       roast: session.roast ?? (asServed ? roastFor(asServed, selected) : null),
-      rung: session.escaped ? session.rung : Math.min(session.rung + 1, pack.ladder.length - 1),
+      rung: session.escaped
+        ? session.rung
+        : Math.min(session.rung + 1, session.rungIds.length - 1),
     }
     const served = serve(currentChallenge(pack, next))
     await persist(id, next, served)

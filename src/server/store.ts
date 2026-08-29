@@ -1,7 +1,10 @@
 export interface Session {
   pack: string
-  /** Which rung of the ladder is currently being served. */
+  /** Which rung of this run's ladder is currently being served. */
   rung: number
+  /** Challenge ids for this run, drawn at session start. Stored rather than
+      recomputed so a reload cannot reroll into an easier ladder. */
+  rungIds: string[]
   attempts: number
   trapped: boolean
   escaped: boolean

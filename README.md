@@ -87,7 +87,8 @@ Not published to npm yet. Build it with `npm run build` and serve
 
 ## What it asks
 
-Five challenges, each a grid of phrases:
+Seven challenges, each a grid of phrases. **A run draws three of them**, so no
+two people get the same ladder:
 
 | Challenge | The actual test |
 | --- | --- |
@@ -99,14 +100,35 @@ Five challenges, each a grid of phrases:
 
 The ladder gets genuinely harder as it goes: a warm-up, then local knowledge,
 then recall, then two rungs of deal literacy. Judgement about a term sheet is
-the hardest thing here to fake.
+the hardest thing here to fake. A run draws two of these five, keeping their
+order so it never opens on the hardest one.
+
+### Then it stops pretending
+
+Fail twice and the third rung is not a knowledge test at all. It is the captcha
+losing its composure:
+
+> **Answer honestly:**
+> ### how many girls are there in San Francisco?
+> seven · about four hundred thousand · nine, but two are visiting · there is
+> one and she is at every party · fewer than there are Waymos · enough, the
+> problem is you
+
+> **Be realistic:**
+> ### how long are you going to be single?
+> until Series B · until the cliff vests · eighteen months, same as the runway ·
+> you are not single, you have a co-founder · until someone reads your Substack
+
+Every run ends on one of these, so the tonal drop always lands rather than being
+buried at the bottom of a ladder nobody finishes. Keep failing and it simply
+asks again, which is the funniest place to be stuck.
 
 **No two runs are the same board.** Each challenge holds more tiles than it
 shows and draws a fresh subset every time, so passing it once does not mean you
 have seen it.
 
-**It lies to you about that.** Every failure claims the next one is easier, and
-the claim degrades as you go:
+**It lies to you the whole way.** Every failure claims the next one is easier,
+and the claim degrades as you go:
 
 > "Let's try an easier one." → "Let's try an easier one." → "This one is
 > easier." → "We are running out of easier ones." → "This is the easiest one we

@@ -171,6 +171,15 @@ export class TechCaptchaElement extends HTMLElement {
     }
   }
 
+  /* Nothing selected is never a valid answer: sampling guarantees at least one
+     correct tile on every board, and a text challenge always wants a value. So
+     an empty Verify can only ever be a wasted attempt, and attempts are
+     scored. */
+  #setVerifyEnabled(enabled: boolean): void {
+    const verify = this.#shadow.querySelector('.verify') as HTMLButtonElement | null
+    if (verify) verify.disabled = !enabled
+  }
+
   #render(challenge: WireChallenge): void {
     this.#current = challenge
     this.#selected.clear()
@@ -190,14 +199,22 @@ export class TechCaptchaElement extends HTMLElement {
         : buildGrid(challenge.tiles ?? [], challenge.columns ?? 3, (index, pressed) => {
             if (pressed) this.#selected.add(index)
             else this.#selected.delete(index)
+            this.#setVerifyEnabled(this.#selected.size > 0)
           }),
     )
+
+    const input = card.querySelector('.answer') as HTMLInputElement | null
+    input?.addEventListener('input', () => this.#setVerifyEnabled(input.value.trim() !== ''))
+    this.#setVerifyEnabled(false)
   }
 
   async #verify(): Promise<void> {
     if (!this.#driver || !this.#current) return
 
     const input = this.#shadow.querySelector('.answer') as HTMLInputElement | null
+    const empty =
+      this.#current.kind === 'text' ? (input?.value ?? '').trim() === '' : this.#selected.size === 0
+    if (empty) return
     let outcome: Outcome
     try {
       outcome = await this.#driver.answer({
@@ -254,6 +271,7 @@ export class TechCaptchaElement extends HTMLElement {
       <div class="status"></div>
       <button class="verify" type="button">Download letter</button>
     `
+    ;(footer.querySelector('.verify') as HTMLButtonElement).disabled = false
     footer.querySelector('.verify')!.addEventListener('click', () => downloadCard(canvas, tier))
     footer.querySelector('.ghost')!.addEventListener('click', () => void this.#build())
 
@@ -289,6 +307,7 @@ export class TechCaptchaElement extends HTMLElement {
     const status = card.querySelector('.status') as HTMLDivElement
     status.textContent = ''
     const verify = card.querySelector('.verify') as HTMLButtonElement
+    verify.disabled = false
     verify.textContent = 'Back'
     verify.onclick = () => {
       verify.textContent = 'Verify'

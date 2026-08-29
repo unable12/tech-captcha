@@ -8,8 +8,15 @@ export interface Pack {
   id: string
   /** Human name of the scene, e.g. "San Francisco". */
   name: string
-  /** Served in order. Every failure moves one rung along. */
+  /** The straight challenges, ordered easiest first. A run draws from these
+      rather than serving all of them, so a second run is a different ladder. */
   ladder: readonly Challenge[]
+  /** How many rungs a run serves, including the finale. Omit to use them all. */
+  rungs?: number
+  /** Every run ends on one of these. The point is that the captcha stops
+      pretending to verify anything, so it has to be reachable rather than
+      buried at the bottom of a ladder nobody finishes. */
+  finale?: readonly Challenge[]
   escape: {
     /** Text of the opt-out link, e.g. "I have never been to San Francisco". */
     label: string

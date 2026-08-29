@@ -56,6 +56,24 @@ const vcSpots: PhraseChallenge = {
 }
 ```
 
+## Draw a ladder rather than serving one
+
+`rungs` sets how many challenges a run serves, drawn from `ladder` and kept in
+their declared order so difficulty still climbs. Everything in `finale` is held
+back: one is appended to every run, and nothing else can reach the last rung.
+
+That split exists because most people pass in one or two attempts. Anything
+sitting at rung five is invisible, so a challenge worth writing has to be
+reachable. Put the straight ones in `ladder` and anything with a change of tone
+in `finale`, and the payoff lands on every run instead of on the few people
+patient enough to fail five times.
+
+```ts
+ladder: [carsOfSF, vcSpots, realYc, revenue, termSheet],
+rungs: 3,          // two drawn from the ladder, plus one finale
+finale: [girls, single],
+```
+
 ## Write more tiles than you show
 
 `show` draws a subset of the pool on every run, always keeping at least two
@@ -87,10 +105,12 @@ fifty lines. Copy it.
 - **The escape hatch is not optional.** Gating a form on local knowledge locks
   out everyone who does not have it. Give your pack a real way out and score it
   as its own thing, not as a failure.
-- **Every challenge must be answerable from knowledge.** A challenge whose
-  answer is "none of them", or that turns on spotting a meta-joke, is a riddle
-  rather than a shibboleth. Someone who fails it learns nothing and feels
-  tricked, which is the opposite of the effect you want.
+- **Either the answer is derivable, or every tile is funny on its own.** One or
+  the other, never neither. A knowledge challenge pays out when you get it
+  right; a joke challenge pays out while you read the options. A challenge with
+  neither is a riddle: you fail it, nothing funny ever appeared, and you feel
+  tricked. A grid with exactly one correct tile is multiple choice, which is
+  how the joke challenges work without a new challenge kind.
 
 Start phrases lowercase unless they begin with a proper noun. Ten tiles that
 each open with a capital "A" read as ten shouted sentences; lowercase makes each

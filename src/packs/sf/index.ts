@@ -4,6 +4,8 @@ import { vcSpots } from './places'
 import { realYc } from './yc'
 import { revenue } from './revenue'
 import { termSheet } from './termsheet'
+import { girls } from './girls'
+import { single } from './single'
 import { escapeHatch } from './escape'
 
 export const sanFrancisco: Pack = {
@@ -11,8 +13,14 @@ export const sanFrancisco: Pack = {
   name: 'San Francisco',
   /* Ordered by how deep the knowledge has to go: a warm-up, then local
      knowledge, then recall, then two rungs of deal literacy. Judgement about a
-     term sheet is the hardest thing here to fake. */
+     term sheet is the hardest thing here to fake.
+     A run draws two of these, so the deal-literacy rungs are reachable instead
+     of buried behind three failures nobody gets to. */
   ladder: [carsOfSF, vcSpots, realYc, revenue, termSheet],
+  rungs: 3,
+  /* Two failures and it stops pretending to verify anything. Keep failing and
+     it just asks again, which is the funniest place to be stuck. */
+  finale: [girls, single],
   escape: {
     label: 'I have never been to San Francisco',
     challenge: escapeHatch,
