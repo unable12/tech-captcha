@@ -1,7 +1,11 @@
 import type { Challenge } from '../types'
 import { carsOfSF } from './cars'
+import { boardMeeting } from './board'
 
-export { carsOfSF }
+export { carsOfSF, boardMeeting }
+
+/** Every rung claims to be easier than the last one. None of them are. */
+export const LADDER: readonly Challenge[] = [carsOfSF, boardMeeting]
 
 /** Tiles ship in answer order. Shuffle a copy before showing one. */
 export function shuffled(challenge: Challenge): Challenge {

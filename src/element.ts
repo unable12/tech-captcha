@@ -1,6 +1,6 @@
 import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
-import { carsOfSF, shuffled } from './challenges'
+import { LADDER, shuffled } from './challenges'
 import { grade, type Challenge } from './types'
 
 const ICONS = {
@@ -19,9 +19,10 @@ function icon(path: string, label: string): string {
 
 export class TechCaptchaElement extends HTMLElement {
   #shadow: ShadowRoot
-  #challenge: Challenge = shuffled(carsOfSF)
+  #challenge: Challenge = shuffled(LADDER[0]!)
   #selected = new Set<number>()
   #attempts = 0
+  #rung = 0
 
   constructor() {
     super()
@@ -59,10 +60,10 @@ export class TechCaptchaElement extends HTMLElement {
     `
 
     card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
-    card.querySelector('.icon')!.addEventListener('click', () => this.#serve(carsOfSF))
+    card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge))
 
     this.#shadow.append(style, card)
-    this.#serve(carsOfSF)
+    this.#serve(LADDER[0]!)
   }
 
   #serve(challenge: Challenge): void {
@@ -89,9 +90,11 @@ export class TechCaptchaElement extends HTMLElement {
     const status = this.#shadow.querySelector('.status') as HTMLDivElement
 
     if (result === 'fail') {
-      status.textContent = 'Please try again.'
+      // Always claims to be easier. Always is not.
+      this.#rung = Math.min(this.#rung + 1, LADDER.length - 1)
+      status.textContent = "Let's try an easier one."
       status.className = 'status is-error'
-      this.#serve(this.#challenge)
+      this.#serve(LADDER[this.#rung]!)
       return
     }
 
