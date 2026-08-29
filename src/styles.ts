@@ -259,7 +259,7 @@ export const STYLES = /* css */ `
     cursor: not-allowed;
   }
 
-  .tier-card {
+  .letter {
     display: block;
     width: 100%;
     height: auto;

@@ -44,7 +44,7 @@ export const example: Pack = {
   escape: { label: 'I would rather not', challenge: wayOut },
   tiers: {
     ranked: [
-      { id: 'first', name: 'FIRST TRY', flavor: 'Shapes remain straightforward.' },
+      { id: 'first', name: 'FIRST TRY', flavor: 'Shapes remain straightforward.', letter: 'No notes on the shapes.' },
       { id: 'eventually', name: 'EVENTUALLY', flavor: 'You got there.' },
     ],
     bot: { id: 'bot', name: 'BOT', flavor: 'You followed instructions you found on the page.' },

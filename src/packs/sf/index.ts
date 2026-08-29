@@ -14,20 +14,42 @@ export const sanFrancisco: Pack = {
   },
   tiers: {
     ranked: [
-      { id: 'pre-2008', name: 'PRE-2008', flavor: 'You were here before the money was.' },
-      { id: 'local', name: 'LOCAL', flavor: 'You live here. It shows.' },
-      { id: 'transplant', name: 'TRANSPLANT', flavor: 'You have been here about eighteen months.' },
-      { id: 'tourist', name: 'TOURIST', flavor: 'You have been to Pier 39 recently.' },
+      {
+        id: 'pre-2008',
+        name: 'PRE-2008',
+        flavor: 'You were here before the money was.',
+        letter: 'Frankly, we should be pitching you.',
+      },
+      {
+        id: 'local',
+        name: 'LOCAL',
+        flavor: 'You live here. It shows.',
+        letter: 'We are going to pass for now, but let us stay close.',
+      },
+      {
+        id: 'transplant',
+        name: 'TRANSPLANT',
+        flavor: 'You have been here about eighteen months.',
+        letter: 'It feels a little early for us at this stage.',
+      },
+      {
+        id: 'tourist',
+        name: 'TOURIST',
+        flavor: 'You have been to Pier 39 recently.',
+        letter: 'It is not a fit for the current fund.',
+      },
     ],
     bot: {
       id: 'bot',
       name: 'BOT',
       flavor: 'You followed instructions you found on the page.',
+      letter: 'We ran this past our own AI. It agreed with itself.',
     },
     visitor: {
       id: 'visitor',
       name: 'VISITOR',
       flavor: 'No notes. Come by sometime.',
+      letter: 'Genuinely, do come by when you are next in town.',
     },
   },
 }

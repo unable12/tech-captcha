@@ -1,7 +1,7 @@
 import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
 import { buildTextInput } from './render/text'
-import { drawTierCard, downloadCard } from './render/tier-card'
+import { drawLetter, downloadCard } from './render/letter'
 import { getPack, packIds, type Pack } from './pack'
 import { LocalDriver } from './drivers/local'
 import { RemoteDriver } from './drivers/remote'
@@ -233,8 +233,8 @@ export class TechCaptchaElement extends HTMLElement {
     card.querySelector('.subject')!.textContent = tier.name
     card.querySelector('.hint')!.textContent = outcome.roast ?? tier.flavor
 
-    const canvas = drawTierCard(tier, attempts, seconds, outcome.roast)
-    canvas.className = 'tier-card'
+    const canvas = drawLetter(tier, attempts, seconds, outcome.roast)
+    canvas.className = 'letter'
     canvas.setAttribute('role', 'img')
     canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
     card.querySelector('.body')!.replaceChildren(canvas)
@@ -245,7 +245,7 @@ export class TechCaptchaElement extends HTMLElement {
     footer.innerHTML = `
       <button class="ghost" type="button">Try again</button>
       <div class="status"></div>
-      <button class="verify" type="button">Download card</button>
+      <button class="verify" type="button">Download letter</button>
     `
     footer.querySelector('.verify')!.addEventListener('click', () => downloadCard(canvas, tier))
     footer.querySelector('.ghost')!.addEventListener('click', () => void this.#build())

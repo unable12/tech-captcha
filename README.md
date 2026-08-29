@@ -202,19 +202,37 @@ Tiers belong to the pack, so a London pack would name its own. San Francisco's:
 | `VISITOR` | Took the escape hatch |
 | `BOT` | Followed the injection. Sticky, and it overrides everything else. |
 
-Passing draws a 1200x630 PNG you can download and post.
+### Passing gets you rejected
 
-### It names what you got wrong
+The artifact is not a score card, it is the email:
 
-A card everyone gets is a card nobody posts. The result carries the run's
-**first** mistake, phrased by whichever challenge caught it:
+```
+FROM      The Investment Committee
+SUBJECT   Re: following up
+──────────────────────────────────────────────
+Thanks for taking the time. It feels a little
+early for us at this stage.
 
-> **TRANSPLANT**
-> You thought Figma went through YC.
+You thought Figma went through YC.
 
-Templates live on the challenge (`roast.picked` / `roast.missed`), so a pack
-writes its own insults. A clean first-attempt pass has nothing to report and
-falls back to the tier's flavour line.
+Happy to make intros if useful.
+──────────────────────────────────────────────
+[ VERIFIED ]  TRANSPLANT        3 attempts · 21.4s
+```
+
+The letter says no. The stamp under it says you are through. That gap is the
+joke, and it is the reason this is the thing worth downloading.
+
+Each tier writes its own brush-off via `letter` on the tier. PRE-2008 gets
+*"Frankly, we should be pitching you."*; BOT gets *"We ran this past our own AI.
+It agreed with itself."*
+
+The middle line is your run's **first** mistake, phrased by whichever challenge
+caught it. Templates live on the challenge (`roast.picked` / `roast.missed`), so
+a pack writes its own insults. A clean first-attempt pass has nothing to report
+and the letter simply omits it.
+
+1200x630, so it survives being dropped into a tweet.
 
 ## Writing a pack
 
