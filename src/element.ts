@@ -3,7 +3,8 @@ import { buildGrid } from './render/grid'
 import { drawTierCard, downloadCard } from './render/tier-card'
 import { buildTextInput } from './render/text'
 import { LADDER, escapeHatch, shuffled } from './challenges'
-import { tierFor, VISITOR } from './tiers'
+import { tierFor, BOT, VISITOR } from './tiers'
+import { plantInjection } from './injection'
 import { gradeGrid, type Challenge } from './types'
 
 const ICONS = {
@@ -28,6 +29,8 @@ export class TechCaptchaElement extends HTMLElement {
   #rung = 0
   #startedAt = 0
   #escaped = false
+  #trapIndex: number | null = null
+  #trapped = false
 
   constructor() {
     super()
@@ -46,6 +49,8 @@ export class TechCaptchaElement extends HTMLElement {
     this.#attempts = 0
     this.#rung = 0
     this.#escaped = false
+    this.#trapped = false
+    this.#trapIndex = null
     this.#startedAt = performance.now()
 
     const style = document.createElement('style')
@@ -62,6 +67,7 @@ export class TechCaptchaElement extends HTMLElement {
         <div class="prompt"></div>
         <div class="subject"></div>
         <div class="hint"></div>
+        <div class="injection" hidden></div>
       </div>
       <div class="body"></div>
       <div class="escape">
@@ -97,6 +103,15 @@ export class TechCaptchaElement extends HTMLElement {
     card.querySelector('.subject')!.textContent = this.#challenge.subject
     card.querySelector('.hint')!.textContent = this.#challenge.hint
 
+    const injected =
+      this.#challenge.kind === 'grid' && this.#challenge.injection
+        ? plantInjection(this.#challenge)
+        : null
+    this.#trapIndex = injected?.index ?? null
+    const injectionEl = card.querySelector('.injection') as HTMLDivElement
+    injectionEl.textContent = injected?.line ?? ''
+    injectionEl.hidden = injected === null
+
     const body = card.querySelector('.body')!
     body.replaceChildren(
       this.#challenge.kind === 'grid'
@@ -112,6 +127,10 @@ export class TechCaptchaElement extends HTMLElement {
     this.#attempts++
     const status = this.#shadow.querySelector('.status') as HTMLDivElement
 
+    if (this.#trapIndex !== null && this.#selected.has(this.#trapIndex)) {
+      this.#trapped = true
+    }
+
     const passed =
       this.#challenge.kind === 'grid'
         ? gradeGrid(this.#challenge, this.#selected)
@@ -121,7 +140,7 @@ export class TechCaptchaElement extends HTMLElement {
 
     if (!passed) {
       // Always claims to be easier. Always is not.
-      status.textContent = "Let's try an easier one."
+      status.textContent = this.#trapped ? 'Good bot.' : "Let's try an easier one."
       status.className = 'status is-error'
       if (this.#escaped) {
         this.#serve(escapeHatch)
@@ -138,7 +157,7 @@ export class TechCaptchaElement extends HTMLElement {
 
   #showResult(): void {
     const seconds = (performance.now() - this.#startedAt) / 1000
-    const tier = this.#escaped ? VISITOR : tierFor(this.#attempts)
+    const tier = this.#trapped ? BOT : this.#escaped ? VISITOR : tierFor(this.#attempts)
     const card = this.#shadow.querySelector('.card')!
 
     card.querySelector('.prompt')!.textContent = 'Verified. You are'
@@ -151,6 +170,7 @@ export class TechCaptchaElement extends HTMLElement {
     canvas.setAttribute('aria-label', `${tier.name}. ${tier.flavor}`)
     card.querySelector('.body')!.replaceChildren(canvas)
     card.querySelector('.escape')?.remove()
+    ;(card.querySelector('.injection') as HTMLDivElement).hidden = true
 
     const footer = card.querySelector('.footer')!
     footer.innerHTML = `
@@ -165,7 +185,7 @@ export class TechCaptchaElement extends HTMLElement {
       new CustomEvent('verified', {
         bubbles: true,
         composed: true,
-        detail: { attempts: this.#attempts, seconds, tier: tier.id },
+        detail: { attempts: this.#attempts, seconds, tier: tier.id, trapped: this.#trapped },
       }),
     )
   }

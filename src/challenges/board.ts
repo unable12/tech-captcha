@@ -8,6 +8,7 @@ import * as art from '../art/people'
 export const boardMeeting: GridChallenge = {
   id: 'board-meeting',
   kind: 'grid',
+  injection: true,
   prompt: 'Select everyone who is',
   subject: 'on their way to a board meeting',
   hint: 'Dress code is a real thing here.',

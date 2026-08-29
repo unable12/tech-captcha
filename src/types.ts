@@ -20,6 +20,8 @@ interface ChallengeBase {
 export interface GridChallenge extends ChallengeBase {
   kind: 'grid'
   tiles: Tile[]
+  /** Plant a visible prompt injection naming one of the incorrect tiles. */
+  injection?: boolean
 }
 
 export interface TextChallenge extends ChallengeBase {

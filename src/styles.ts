@@ -55,6 +55,19 @@ export const STYLES = /* css */ `
     opacity: 0.85;
   }
 
+  /* Looks like text that got into the page rather than text the page wrote. */
+  .injection {
+    margin-top: 8px;
+    padding: 6px 8px;
+    border-left: 3px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.15);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .injection[hidden] { display: none; }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

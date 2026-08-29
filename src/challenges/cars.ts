@@ -8,6 +8,7 @@ import * as art from '../art/cars'
 export const carsOfSF: GridChallenge = {
   id: 'cars-of-sf',
   kind: 'grid',
+  injection: true,
   prompt: 'Select all squares with',
   subject: 'a car you would see in San Francisco',
   hint: 'Click verify once there are none left.',
