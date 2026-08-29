@@ -2,7 +2,7 @@ import type { Tier } from '../tiers'
 
 const W = 1200
 const H = 630
-const FONT = 'Roboto, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif'
+const FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
 /** Open Graph sized so it survives being dropped into a tweet or a Slack. */
 export function drawTierCard(tier: Tier, attempts: number, seconds: number): HTMLCanvasElement {

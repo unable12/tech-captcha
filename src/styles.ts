@@ -11,8 +11,14 @@ export const STYLES = /* css */ `
     all: initial;
     box-sizing: border-box;
     display: block;
-    font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    /* Named, never fetched. A widget that loads a webfont from inside someone
+       else's page is a privacy problem and dies to their CSP, so this only
+       picks Inter up when the host already has it and otherwise lands on the
+       platform UI face. */
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     line-height: normal;
     color: #000;
     text-align: left;
@@ -37,15 +43,17 @@ export const STYLES = /* css */ `
   }
 
   .prompt {
-    font-size: 14px;
-    line-height: 1.25;
+    font-size: 13px;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
   }
 
   .subject {
     font-size: 21px;
-    font-weight: 500;
-    line-height: 1.25;
-    margin-top: 2px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    margin-top: 3px;
   }
 
   .hint {
@@ -261,6 +269,7 @@ export const STYLES = /* css */ `
     color: #fff;
     font-size: 14px;
     font-weight: 500;
+    letter-spacing: -0.005em;
     padding: 9px 18px;
     border-radius: 2px;
     cursor: pointer;
