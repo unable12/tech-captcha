@@ -37,3 +37,14 @@ export function gradeGrid(challenge: GridChallenge, selected: ReadonlySet<number
   const wrong = challenge.tiles.some((t, i) => !t.correct && selected.has(i))
   return !missed && !wrong
 }
+
+/** Tiles ship in answer order. Shuffle a copy before showing one. */
+export function shuffled(challenge: Challenge): Challenge {
+  if (challenge.kind !== 'grid') return challenge
+  const tiles = [...challenge.tiles]
+  for (let i = tiles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[tiles[i], tiles[j]] = [tiles[j]!, tiles[i]!]
+  }
+  return { ...challenge, tiles }
+}

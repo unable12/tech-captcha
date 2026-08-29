@@ -1,11 +1,13 @@
 import { STYLES } from './styles'
 import { buildGrid } from './render/grid'
-import { drawTierCard, downloadCard } from './render/tier-card'
 import { buildTextInput } from './render/text'
-import { LADDER, escapeHatch, shuffled } from './challenges'
-import { tierFor, BOT, VISITOR } from './tiers'
+import { drawTierCard, downloadCard } from './render/tier-card'
 import { plantInjection } from './injection'
-import { gradeGrid, type Challenge } from './types'
+import { getPack, packIds, type Pack } from './pack'
+import { pickTier } from './tiers'
+import { gradeGrid, shuffled, type Challenge } from './types'
+
+const DEFAULT_PACK = 'sf'
 
 const ICONS = {
   reload:
@@ -22,8 +24,11 @@ function icon(path: string, label: string): string {
 }
 
 export class TechCaptchaElement extends HTMLElement {
+  static readonly observedAttributes = ['pack']
+
   #shadow: ShadowRoot
-  #challenge: Challenge = shuffled(LADDER[0]!)
+  #pack: Pack | null = null
+  #challenge: Challenge | null = null
   #selected = new Set<number>()
   #attempts = 0
   #rung = 0
@@ -41,11 +46,39 @@ export class TechCaptchaElement extends HTMLElement {
     if (this.#shadow.childElementCount === 0) this.#build()
   }
 
+  attributeChangedCallback(name: string, previous: string | null, next: string | null): void {
+    if (name === 'pack' && previous !== next && this.#shadow.childElementCount > 0) {
+      this.#build()
+    }
+  }
+
   get attempts(): number {
     return this.#attempts
   }
 
+  /** Falls back rather than throwing: a captcha that explodes takes the host
+      page's signup form down with it. */
+  #resolvePack(): Pack | null {
+    const requested = this.getAttribute('pack')
+    const pack = getPack(requested ?? DEFAULT_PACK)
+    if (pack) return pack
+
+    const fallback = getPack(DEFAULT_PACK) ?? getPack(packIds()[0] ?? '')
+    if (!fallback) {
+      console.warn('tech-captcha: no packs registered, rendering nothing')
+      return null
+    }
+    console.warn(`tech-captcha: unknown pack "${requested}", falling back to "${fallback.id}"`)
+    return fallback
+  }
+
   #build(): void {
+    this.#pack = this.#resolvePack()
+    if (!this.#pack) {
+      this.#shadow.replaceChildren()
+      return
+    }
+
     this.#attempts = 0
     this.#rung = 0
     this.#escaped = false
@@ -59,7 +92,7 @@ export class TechCaptchaElement extends HTMLElement {
     const card = document.createElement('div')
     card.className = 'card'
     card.setAttribute('role', 'group')
-    card.setAttribute('aria-label', 'Captcha challenge')
+    card.setAttribute('aria-label', `${this.#pack.name} captcha challenge`)
     // Serving a new challenge swaps the header text with no focus change, so
     // without a live region a screen reader never hears that it changed.
     card.innerHTML = `
@@ -71,7 +104,7 @@ export class TechCaptchaElement extends HTMLElement {
       </div>
       <div class="body"></div>
       <div class="escape">
-        <button class="link" type="button">I have never been to San Francisco</button>
+        <button class="link" type="button"></button>
       </div>
       <div class="footer">
         ${icon(ICONS.reload, 'Get a new challenge')}
@@ -82,16 +115,19 @@ export class TechCaptchaElement extends HTMLElement {
       </div>
     `
 
-    card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
-    card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge))
-    card.querySelector('.link')!.addEventListener('click', () => {
+    const link = card.querySelector('.link') as HTMLButtonElement
+    link.textContent = this.#pack.escape.label
+    link.addEventListener('click', () => {
       this.#escaped = true
       card.querySelector('.escape')!.remove()
-      this.#serve(escapeHatch)
+      this.#serve(this.#pack!.escape.challenge)
     })
 
+    card.querySelector('.verify')!.addEventListener('click', () => this.#verify())
+    card.querySelector('.icon')!.addEventListener('click', () => this.#serve(this.#challenge!))
+
     this.#shadow.replaceChildren(style, card)
-    this.#serve(LADDER[0]!)
+    this.#serve(this.#pack.ladder[0]!)
   }
 
   #serve(challenge: Challenge): void {
@@ -112,8 +148,7 @@ export class TechCaptchaElement extends HTMLElement {
     injectionEl.textContent = injected?.line ?? ''
     injectionEl.hidden = injected === null
 
-    const body = card.querySelector('.body')!
-    body.replaceChildren(
+    card.querySelector('.body')!.replaceChildren(
       this.#challenge.kind === 'grid'
         ? buildGrid(this.#challenge.tiles, (index, pressed) => {
             if (pressed) this.#selected.add(index)
@@ -124,6 +159,7 @@ export class TechCaptchaElement extends HTMLElement {
   }
 
   #verify(): void {
+    if (!this.#pack || !this.#challenge) return
     this.#attempts++
     const status = this.#shadow.querySelector('.status') as HTMLDivElement
 
@@ -143,10 +179,10 @@ export class TechCaptchaElement extends HTMLElement {
       status.textContent = this.#trapped ? 'Good bot.' : "Let's try an easier one."
       status.className = 'status is-error'
       if (this.#escaped) {
-        this.#serve(escapeHatch)
+        this.#serve(this.#pack.escape.challenge)
       } else {
-        this.#rung = Math.min(this.#rung + 1, LADDER.length - 1)
-        this.#serve(LADDER[this.#rung]!)
+        this.#rung = Math.min(this.#rung + 1, this.#pack.ladder.length - 1)
+        this.#serve(this.#pack.ladder[this.#rung]!)
       }
       ;(this.#shadow.querySelector('.answer') as HTMLInputElement | null)?.focus()
       return
@@ -156,10 +192,15 @@ export class TechCaptchaElement extends HTMLElement {
   }
 
   #showResult(): void {
+    const pack = this.#pack!
     const seconds = (performance.now() - this.#startedAt) / 1000
-    const tier = this.#trapped ? BOT : this.#escaped ? VISITOR : tierFor(this.#attempts)
-    const card = this.#shadow.querySelector('.card')!
+    const tier = this.#trapped
+      ? pack.tiers.bot
+      : this.#escaped
+        ? pack.tiers.visitor
+        : pickTier(pack.tiers.ranked, this.#attempts)
 
+    const card = this.#shadow.querySelector('.card')!
     card.querySelector('.prompt')!.textContent = 'Verified. You are'
     card.querySelector('.subject')!.textContent = tier.name
     card.querySelector('.hint')!.textContent = tier.flavor
@@ -185,7 +226,13 @@ export class TechCaptchaElement extends HTMLElement {
       new CustomEvent('verified', {
         bubbles: true,
         composed: true,
-        detail: { attempts: this.#attempts, seconds, tier: tier.id, trapped: this.#trapped },
+        detail: {
+          pack: pack.id,
+          attempts: this.#attempts,
+          seconds,
+          tier: tier.id,
+          trapped: this.#trapped,
+        },
       }),
     )
   }

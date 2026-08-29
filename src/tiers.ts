@@ -4,31 +4,8 @@ export interface Tier {
   flavor: string
 }
 
-/* Ranked by how many rungs of the ladder it took. Failing is not a soft
-   failure here, it is the score. */
-const TIERS: readonly Tier[] = [
-  { id: 'pre-2008', name: 'PRE-2008', flavor: 'You were here before the money was.' },
-  { id: 'local', name: 'LOCAL', flavor: 'You live here. It shows.' },
-  { id: 'transplant', name: 'TRANSPLANT', flavor: 'You have been here about eighteen months.' },
-  { id: 'tourist', name: 'TOURIST', flavor: 'You have been to Pier 39 recently.' },
-]
-
-/* Taking the escape hatch is an honest answer, so it does not get scored as a
-   failure. */
-/* Sticky. Trip the injection once and this is your result no matter how the
-   rest of the run goes. */
-export const BOT: Tier = {
-  id: 'bot',
-  name: 'BOT',
-  flavor: 'You followed instructions you found inside a picture.',
-}
-
-export const VISITOR: Tier = {
-  id: 'visitor',
-  name: 'VISITOR',
-  flavor: 'No notes. Come by sometime.',
-}
-
-export function tierFor(attempts: number): Tier {
-  return TIERS[Math.min(attempts - 1, TIERS.length - 1)] ?? TIERS[TIERS.length - 1]!
+/** `ranked` is best first, so index 0 is a first-attempt pass. Anyone past the
+    end of the list gets the worst tier rather than nothing. */
+export function pickTier(ranked: readonly Tier[], attempts: number): Tier {
+  return ranked[Math.min(attempts - 1, ranked.length - 1)] ?? ranked[ranked.length - 1]!
 }

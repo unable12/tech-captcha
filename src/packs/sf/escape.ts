@@ -1,4 +1,4 @@
-import type { TextChallenge } from '../types'
+import type { TextChallenge } from '../../types'
 
 /* The way out for anyone who has never been here. It is not a punishment
    route and it is not a joke at their expense: it is trivially passable,

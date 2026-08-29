@@ -1,5 +1,5 @@
-import type { GridChallenge } from '../types'
-import * as art from '../art/cars'
+import type { GridChallenge } from '../../types'
+import * as art from './art/cars'
 
 /* The point of this one: recognising a Waymo is a vision task anyone passes.
    Knowing that a Civic with a trash bag taped over the window is a San

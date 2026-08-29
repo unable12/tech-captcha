@@ -24,6 +24,8 @@
       p.sub { margin: 0 0 28px; color: #6e6e73; }
       .widget { display: inline-block; line-height: normal !important; }
       .note { margin-top: 28px; font-size: 13px; color: #6e6e73; max-width: 340px; }
+      .packs { margin-top: 20px; display: flex; gap: 8px; justify-content: center; }
+      .packs button { font-size: 12px; padding: 6px 10px; cursor: pointer; }
     </style>
   </head>
   <body>
@@ -32,7 +34,13 @@
       <p class="sub">One more step. It's a formality.</p>
 
       <div class="widget">
-        <tech-captcha></tech-captcha>
+        <tech-captcha pack="sf"></tech-captcha>
+      </div>
+
+      <div class="packs">
+        <button type="button" data-pack="sf">sf</button>
+        <button type="button" data-pack="example">example</button>
+        <button type="button" data-pack="nonsense">nonsense (falls back)</button>
       </div>
 
       <div class="note">
@@ -43,5 +51,16 @@
     </div>
 
     <script type="module" src="/src/index.ts"></script>
+    <script>
+      const captcha = document.querySelector('tech-captcha')
+      document.querySelectorAll('.packs button').forEach((button) => {
+        button.addEventListener('click', () => {
+          captcha.setAttribute('pack', button.dataset.pack)
+        })
+      })
+      captcha.addEventListener('verified', (event) => {
+        console.log('verified', event.detail)
+      })
+    </script>
   </body>
 </html>

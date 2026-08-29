@@ -7,7 +7,11 @@ a car with a bin bag taped over the smashed window, and whether you know that
 the person in the full suit is the one who is definitely not going to a board
 meeting. Then it ranks you.
 
-One custom element, no runtime dependencies, about 7 kB gzipped.
+San Francisco is just the pack that ships in the box. The scene, its challenges,
+its way out and its rankings are all data, so any city or scene can have its
+own.
+
+One custom element, no runtime dependencies, about 8 kB gzipped with both packs.
 
 ## This is not security
 
@@ -27,12 +31,12 @@ decoration on top.
 ```html
 <script type="module" src="/tech-captcha.js"></script>
 
-<tech-captcha></tech-captcha>
+<tech-captcha pack="sf"></tech-captcha>
 ```
 
 ```js
 document.querySelector('tech-captcha').addEventListener('verified', (event) => {
-  // { attempts: 2, seconds: 8.4, tier: 'local', trapped: false }
+  // { pack: 'sf', attempts: 2, seconds: 8.4, tier: 'local', trapped: false }
   console.log(event.detail)
 })
 ```
@@ -44,7 +48,7 @@ React, Vue, Rails, or a static HTML file without a wrapper.
 Not published to npm yet. Build it with `npm run build` and serve
 `dist/tech-captcha.js` yourself.
 
-## The challenges
+## The San Francisco pack
 
 | Challenge | The actual test |
 | --- | --- |
@@ -76,6 +80,8 @@ users, who are the one group that cannot see it coming.
 
 ## Tiers
 
+Tiers belong to the pack, so a London pack would name its own. San Francisco's:
+
 | Tier | How |
 | --- | --- |
 | `PRE-2008` | First attempt |
@@ -87,32 +93,69 @@ users, who are the one group that cannot see it coming.
 
 Passing draws a 1200x630 PNG you can download and post.
 
-## Writing a challenge
+## Writing a pack
 
-A challenge is data. Grid challenges need nine tiles and an inline SVG each:
+A pack is one object. It owns its challenges, its escape hatch and its tier
+names, and it needs no changes to the core to work:
 
 ```ts
-import type { GridChallenge } from './types'
+import { registerPack, type Pack } from 'tech-captcha'
 
-export const yourChallenge: GridChallenge = {
-  id: 'your-challenge',
+const london: Pack = {
+  id: 'london',
+  name: 'London',
+  ladder: [placesYouMightMeetAVc],
+  escape: {
+    label: 'I have never been to London',
+    challenge: typeTheWordHuman,
+  },
+  tiers: {
+    ranked: [
+      { id: 'zone-1', name: 'ZONE 1', flavor: '…' },
+      { id: 'zone-4', name: 'ZONE 4', flavor: '…' },
+    ],
+    bot: { id: 'bot', name: 'BOT', flavor: '…' },
+    visitor: { id: 'visitor', name: 'VISITOR', flavor: '…' },
+  },
+}
+
+registerPack(london)
+```
+
+```html
+<tech-captcha pack="london"></tech-captcha>
+```
+
+A grid challenge is data plus an inline SVG per tile. Any tile count works, the
+grid is three across:
+
+```ts
+const placesYouMightMeetAVc: GridChallenge = {
+  id: 'vc-spots',
   kind: 'grid',
+  injection: true,
   prompt: 'Select all squares with',
-  subject: 'something only locals would know',
+  subject: 'somewhere you might meet a VC',
   hint: 'Click verify once there are none left.',
   tiles: [
-    { id: 'a', art: '<svg …>', label: 'Described for screen readers', correct: true },
-    // …eight more
+    { id: 'soho-house', art: '<svg …>', label: 'Described for screen readers', correct: true },
+    // …
   ],
 }
 ```
 
-Then add it to `LADDER` in `src/challenges/index.ts`.
+`src/packs/example` is a working template with both challenge kinds in about
+fifty lines. Copy it.
 
-The one rule that matters: **difficulty must come from obscurity, never from
-ambiguity.** Twice during the build a correct tile and an incorrect tile were
-drawn so similarly that the challenge became unfair rather than hard. Check
-every new tile against its nearest neighbour in the opposite set.
+Two rules that matter:
+
+- **Difficulty must come from obscurity, never from ambiguity.** Twice during
+  the build a correct tile and an incorrect tile were drawn so similarly that
+  the challenge became unfair rather than hard. Check every new tile against its
+  nearest neighbour in the opposite set.
+- **The escape hatch is not optional.** Gating a form on local knowledge locks
+  out everyone who does not have it. Give your pack a real way out and score it
+  as its own thing, not as a failure.
 
 ## Accessibility
 
@@ -130,8 +173,9 @@ A joke captcha that locks people out is just a broken captcha.
 
 ## Not built yet
 
-Server-side verification, timing signals, and a loadable pack format so a scene
-other than San Francisco can ship its own challenges.
+Server-side verification, timing signals, and packs loaded at runtime from JSON.
+Packs are modules today, which suits contributors sending a pull request but not
+someone hosting a pack of their own on a CDN.
 
 ## Development
 

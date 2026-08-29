@@ -1,5 +1,5 @@
-import type { GridChallenge } from '../types'
-import * as art from '../art/people'
+import type { GridChallenge } from '../../types'
+import * as art from './art/people'
 
 /* Knowledge, not perception. "Select the vests" is something anyone can do.
    Knowing that the suit is the one person definitely not going to a board
