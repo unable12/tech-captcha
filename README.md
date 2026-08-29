@@ -82,12 +82,16 @@ Three challenges, each a grid of phrases:
 
 | Challenge | The actual test |
 | --- | --- |
-| **A car you would see in San Francisco** | A Waymo with nobody in it, a Civic with a bin bag taped over the window, a parked car with the glovebox left open. The wrong answers are a yellow cab, a stretch limo and a pickup with a gun rack: vehicles that exist, just not here. |
-| **Somewhere you might run into a VC** | South Park, Sand Hill Road, Sightglass, Barry's at 6am. Every wrong answer is a tourist trap, which is the joke and also the filter. |
+| **A car you would see in San Francisco** | A Waymo with nobody in it, a Civic with a bin bag taped over the window, a car parked on a hill with its wheels turned. The best decoy is *a convertible with the top down*: a real, ordinary vehicle that is wrong here only because you would have to know it is freezing. |
+| **Somewhere you might run into a VC** | South Park, Sand Hill Road, Buck's of Woodside, Barry's at 6am. Every wrong answer is a tourist trap, which is the joke and also the filter. |
 | **Actually went through YC** | Reddit, Twitch, Heroku, Ginkgo Bioworks and Boom Supersonic against Figma, Notion, Plaid and Robinhood. Every name is a real company. Airbnb and Stripe are absent on purpose: everybody knows those. |
 
 The ladder gets genuinely harder as it goes. Cars is a warm-up, VC spots needs
 local knowledge, YC needs portfolio knowledge.
+
+**No two runs are the same board.** Each challenge holds more tiles than it
+shows and draws a fresh subset every time, so passing it once does not mean you
+have seen it.
 
 **It lies to you about that.** Every failure claims the next one is easier, and
 the claim degrades as you go:
@@ -281,7 +285,8 @@ const vcSpots: PhraseChallenge = {
   columns: 3,          // 3 for short names, 2 for sentences, 1 for anything longer
   prompt: 'Select everywhere you might',
   subject: 'run into a VC',
-  hint: 'Three of these are for tourists.',
+  hint: 'Some of these are for tourists.',
+  show: 9,             // drawn from a bigger pool, so every run is a new board
   roast: {
     picked: 'You would look for a VC at {}.',
     missed: 'You have never been to {}.',
@@ -294,8 +299,20 @@ const vcSpots: PhraseChallenge = {
 }
 ```
 
-Pick `columns` to fit the phrases rather than trimming phrases to fit a grid. In
-two columns, use an even number of tiles or the last row is left with an orphan.
+### Write more tiles than you show
+
+`show` draws a subset of the pool on every run, always keeping at least two
+correct and two incorrect tiles so the question stays a question. Sixteen tiles
+showing nine means the second person to try it gets a different board, which is
+most of what makes it worth passing along. It is the highest-leverage thing you
+can do for a pack.
+
+Two consequences worth knowing. `show` should be even for a two-column
+challenge, or the last row is left with an orphan. And a hint cannot state a
+count any more: San Francisco's says *"Some of these are for tourists"* rather
+than *"Three of these"*, because the number now varies.
+
+Pick `columns` to fit the phrases rather than trimming phrases to fit a grid.
 Image challenges use `kind: 'grid'` and take an inline SVG plus a screen-reader
 `label` per tile.
 
@@ -313,6 +330,10 @@ fifty lines. Copy it.
   out everyone who does not have it. Give your pack a real way out and score it
   as its own thing, not as a failure.
 
+Start phrases lowercase unless they begin with a proper noun. Ten tiles that
+each open with a capital "A" read as ten shouted sentences; lowercase makes each
+one a continuation of the prompt above it.
+
 ## Accessibility
 
 A joke captcha that locks people out is just a broken captcha.
@@ -326,6 +347,8 @@ A joke captcha that locks people out is just a broken captcha.
   screen, so a screen reader user gets exactly what a sighted user gets. Image
   challenges do leak, since the tile's `aria-label` has to describe the picture.
   That is one more reason San Francisco ships phrases.
+- `prefers-reduced-motion` drops the movement and keeps the colour change, since
+  the colour is what tells you a tile is selected.
 
 ## Design notes
 

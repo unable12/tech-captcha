@@ -198,6 +198,20 @@ export const STYLES = /* css */ `
   .icon:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
   .icon svg { width: 20px; height: 20px; fill: currentColor; }
 
+  /* Reduced motion means gentler, not none. The colour flip carries the
+     meaning of a selection, so it stays; the movement goes. */
+  @media (prefers-reduced-motion: reduce) {
+    .tile {
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .tile:active,
+    .tile.is-phrase:active,
+    .tile.is-art[aria-pressed="true"] {
+      transform: none;
+    }
+  }
+
   .escape {
     padding: 0 8px 10px;
   }

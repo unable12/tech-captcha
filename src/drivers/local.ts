@@ -1,7 +1,7 @@
 import type { Driver, Outcome } from './types'
 import type { Pack } from '../pack'
 import type { Challenge } from '../types'
-import { gradeSelection, shuffled } from '../types'
+import { gradeSelection, sample } from '../types'
 import { plantInjection } from '../injection'
 import { pickTier } from '../tiers'
 import { escalation, roastFor } from '../copy'
@@ -90,7 +90,7 @@ export class LocalDriver implements Driver {
   }
 
   #serve(challenge: Challenge): WireChallenge {
-    const served = shuffled(challenge)
+    const served = sample(challenge)
     this.#current = served
 
     const injection =

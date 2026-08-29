@@ -109,6 +109,11 @@
 
       .continue:active { transform: scale(0.985); }
 
+      @media (prefers-reduced-motion: reduce) {
+        .continue { transition: none; }
+        .continue:active { transform: none; }
+      }
+
       .continue:disabled {
         background: #e8e8ed;
         color: #a1a1a6;

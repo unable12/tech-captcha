@@ -1,6 +1,6 @@
 import type { Pack } from '../pack'
 import type { Challenge, SelectionChallenge } from '../types'
-import { shuffled } from '../types'
+import { sample } from '../types'
 import { plantInjection } from '../injection'
 import { toWire, type WireChallenge } from '../wire'
 import { pickTier } from '../tiers'
@@ -44,7 +44,7 @@ function currentChallenge(pack: Pack, session: Pick<Session, 'rung' | 'escaped'>
 }
 
 function serve(challenge: Challenge): Served {
-  const shuffledChallenge = shuffled(challenge)
+  const shuffledChallenge = sample(challenge)
   const injection =
     shuffledChallenge.kind !== 'text' && shuffledChallenge.injection
       ? plantInjection(shuffledChallenge)

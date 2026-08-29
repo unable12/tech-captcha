@@ -42,7 +42,13 @@ check('burned session is gone', dead.status === 410, dead.status)
 const good = await post('session', {})
 // Solve it by asking the server for every subset would be cheating; instead
 // drive it the way the browser does, using the labels the wire format exposes.
-const WRONG = ['A yellow taxi cab', 'A stretch limo', 'A pickup with a gun rack']
+const WRONG = [
+  'a yellow taxi cab',
+  'a stretch limo',
+  'a pickup with a gun rack',
+  'a convertible with the top down',
+  'a pickup towing a boat',
+]
 const selected = good.body.challenge.tiles
   .map((t, i) => (WRONG.includes(t.label) ? -1 : i))
   .filter((i) => i >= 0)
@@ -81,9 +87,26 @@ const ycTiles = (await post('attempt', { session: roasted.body.session, action: 
 const YC = ['Reddit', 'Twitch', 'Heroku', 'Ginkgo Bioworks', 'Boom Supersonic']
 const ycPick = ycTiles.map((t, i) => (YC.includes(t.label) ? i : -1)).filter((i) => i >= 0)
 const finished = await post('attempt', { session: roasted.body.session, action: 'answer', selected: ycPick })
-const expected = `You think ${decoyLabel[0].toLowerCase()}${decoyLabel.slice(1)} is a San Francisco problem.`
+const expected = `You think ${decoyLabel} is a San Francisco problem.`
 check('roast names the tile that was picked', finished.body.roast === expected, finished.body.roast)
 check('roast keeps the FIRST mistake, not the last', !String(finished.body.roast).includes('VC'))
+
+// 5c. Sampling: a fixed pool, a drawn subset, and both sides always present.
+const boards = []
+for (let i = 0; i < 25; i++) {
+  const s = await post('session', {})
+  boards.push(s.body.challenge.tiles.map((t) => t.label))
+}
+check('draws the declared number of tiles', boards.every((b) => b.length === 10), `${boards[0].length}`)
+check('never repeats a tile within a board', boards.every((b) => new Set(b).size === b.length))
+check(
+  'always shows at least two of each side',
+  boards.every((b) => {
+    const wrong = b.filter((l) => WRONG.includes(l)).length
+    return wrong >= 2 && b.length - wrong >= 2
+  }),
+)
+check('boards differ between runs', new Set(boards.map((b) => [...b].sort().join('|'))).size > 1, `${new Set(boards.map((b) => [...b].sort().join('|'))).size} distinct of 25`)
 
 // 6. Forgery.
 const [body] = passed.body.token.split('.')

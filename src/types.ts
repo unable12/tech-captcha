@@ -35,6 +35,10 @@ interface SelectionBase extends ChallengeBase {
   /** Result-card roast templates. `{}` becomes the offending tile's text.
       Without this a failed run just gets the tier's generic flavour line. */
   roast?: { picked: string; missed: string }
+  /** How many tiles to show from the pool. Omit to show all of them.
+      A pool bigger than what it shows is what makes a second run different
+      from the first, so it is worth writing more tiles than fit. */
+  show?: number
 }
 
 export interface GridChallenge extends SelectionBase {
@@ -66,13 +70,47 @@ export function gradeSelection(
   return !missed && !wrong
 }
 
-/** Tiles ship in answer order. Shuffle a copy before showing one. */
-export function shuffled(challenge: Challenge): Challenge {
-  if (challenge.kind === 'text') return challenge
-  const tiles = [...challenge.tiles]
-  for (let i = tiles.length - 1; i > 0; i--) {
+function shuffle<T>(items: readonly T[]): T[] {
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[tiles[i], tiles[j]] = [tiles[j]!, tiles[i]!]
+    ;[out[i], out[j]] = [out[j]!, out[i]!]
   }
-  return { ...challenge, tiles } as Challenge
+  return out
+}
+
+/** Both sides need enough tiles to stay a question rather than a formality,
+    and the injection needs a decoy to hide behind. */
+const MIN_EACH = 2
+
+/** Shuffles, and draws a subset when the challenge declares one. Tiles ship in
+    answer order, so nothing may be shown to a browser without going through
+    here first. */
+export function sample(challenge: Challenge): Challenge {
+  if (challenge.kind === 'text') return challenge
+
+  const pool: Tile[] = challenge.tiles
+  const show = Math.min(challenge.show ?? pool.length, pool.length)
+  if (show >= pool.length) {
+    return { ...challenge, tiles: shuffle(pool) } as Challenge
+  }
+
+  const correct = shuffle(pool.filter((tile) => tile.correct))
+  const wrong = shuffle(pool.filter((tile) => !tile.correct))
+
+  const minWrong = Math.min(MIN_EACH, wrong.length)
+  const maxWrong = Math.min(wrong.length, show - Math.min(MIN_EACH, correct.length))
+  const wrongCount =
+    maxWrong <= minWrong
+      ? minWrong
+      : minWrong + Math.floor(Math.random() * (maxWrong - minWrong + 1))
+
+  let taken = [...correct.slice(0, show - wrongCount), ...wrong.slice(0, wrongCount)]
+  // A short correct pool leaves a gap; fill it from whichever side has spare.
+  if (taken.length < show) {
+    const spare = [...correct.slice(show - wrongCount), ...wrong.slice(wrongCount)]
+    taken = [...taken, ...spare.slice(0, show - taken.length)]
+  }
+
+  return { ...challenge, tiles: shuffle(taken) } as Challenge
 }
