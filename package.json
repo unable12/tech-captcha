@@ -3,6 +3,30 @@
   "version": "0.0.0",
   "description": "A captcha for people who have opinions about Sand Hill Road.",
   "license": "MIT",
+  "author": "Kamil Ruczynski",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unable12/tech_captcha.git"
+  },
+  "homepage": "https://github.com/unable12/tech_captcha#readme",
+  "bugs": {
+    "url": "https://github.com/unable12/tech_captcha/issues"
+  },
+  "keywords": [
+    "captcha",
+    "web-component",
+    "custom-element",
+    "shadow-dom",
+    "bot-detection",
+    "prompt-injection",
+    "honeypot",
+    "san-francisco",
+    "no-dependencies",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
   "type": "module",
   "files": [
     "dist"
