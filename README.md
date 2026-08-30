@@ -1,6 +1,6 @@
 # tech-captcha
 
-[![CI](https://github.com/unable12/tech_captcha/actions/workflows/ci.yml/badge.svg)](https://github.com/unable12/tech_captcha/actions/workflows/ci.yml)
+[![CI](https://github.com/unable12/tech-captcha/actions/workflows/ci.yml/badge.svg)](https://github.com/unable12/tech-captcha/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A captcha for people who have opinions about Sand Hill Road.**
@@ -276,6 +276,8 @@ about fifty lines.
 
 **[Read the full guide](docs/writing-a-pack.md)** for the tile pool mechanics,
 the column rules, and the four rules that keep a challenge fair.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers the four ways a challenge gets a pull
+request rejected, all of which happened during this project's own development.
 
 ## Accessibility
 
@@ -341,6 +343,12 @@ The demo runs the real server handler behind Vite, so the local/server toggle at
 the bottom of that page hits genuine endpoints. `/hostile.html` forces Comic
 Sans, hot-pink buttons and triple line-height onto every element; the widget
 should be untouched.
+
+## Contributing
+
+Packs are the main way this project grows, and the engine work is the easy part.
+The answer keys are not. See [CONTRIBUTING.md](CONTRIBUTING.md), and
+[SECURITY.md](SECURITY.md) for what does and does not count as a vulnerability.
 
 ## License
 

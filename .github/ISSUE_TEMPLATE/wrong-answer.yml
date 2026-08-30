@@ -1,0 +1,46 @@
+name: Wrong answer key
+description: A challenge marks something correct that is not, or the reverse.
+title: 'Wrong answer: '
+labels: [answer key]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every challenge here is a factual claim, so some of them will be wrong.
+        This is the most useful kind of issue you can open.
+
+        A tile people can argue about does not belong in an answer key at all,
+        so "this is contested" is a valid report even without a citation.
+  - type: input
+    id: challenge
+    attributes:
+      label: Challenge
+      description: The `id` from the pack, for example `real-yc` or `term-sheet`.
+      placeholder: real-yc
+    validations:
+      required: true
+  - type: input
+    id: tile
+    attributes:
+      label: Tile
+      description: The exact text shown on the tile.
+      placeholder: Heroku
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      options:
+        - Marked correct, but is not
+        - Marked incorrect, but is correct
+        - Genuinely contested, so it should not be in the key at all
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How do you know
+      description: A source, or an explanation from experience. Either is fine.
+    validations:
+      required: true

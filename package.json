@@ -6,11 +6,11 @@
   "author": "Kamil Ruczynski",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unable12/tech_captcha.git"
+    "url": "git+https://github.com/unable12/tech-captcha.git"
   },
-  "homepage": "https://github.com/unable12/tech_captcha#readme",
+  "homepage": "https://github.com/unable12/tech-captcha#readme",
   "bugs": {
-    "url": "https://github.com/unable12/tech_captcha/issues"
+    "url": "https://github.com/unable12/tech-captcha/issues"
   },
   "keywords": [
     "captcha",

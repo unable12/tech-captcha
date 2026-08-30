@@ -1,0 +1,48 @@
+name: New pack
+description: Propose a scene other than San Francisco.
+title: 'Pack: '
+labels: [pack]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Packs are the main way this project grows. Read
+        [docs/writing-a-pack.md](../blob/main/docs/writing-a-pack.md) first, and
+        open this before you build if you want a second opinion on the
+        challenges. The engine work is the easy part; the answer keys are not.
+  - type: input
+    id: scene
+    attributes:
+      label: Scene
+      placeholder: London, Berlin, biotech, games
+    validations:
+      required: true
+  - type: textarea
+    id: challenges
+    attributes:
+      label: Challenges you have in mind
+      description: |
+        For each one: the question, a few correct answers, and a few decoys.
+        The decoys matter more than the answers. A decoy a stranger can
+        eliminate on sight is not a decoy.
+    validations:
+      required: true
+  - type: input
+    id: escape
+    attributes:
+      label: Escape hatch
+      description: The opt-out link for someone who has never been.
+      placeholder: I have never been to London
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Before you build
+      options:
+        - label: Every answer is beyond dispute, not just something I believe
+          required: true
+        - label: Every decoy is real and plausible, not invented
+          required: true
+        - label: Either the answers are derivable, or every tile is funny on its own
+          required: true
