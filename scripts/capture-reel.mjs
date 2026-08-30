@@ -107,12 +107,26 @@ try {
 
   const url = `${URL_BASE}/docs/reel.html?capture=1&seed=${SEED}&fps=${FPS}`
   await on('Page.navigate', { url })
-  for (let i = 0; i < 200; i++) {
+
+  /* Fail loudly when the page is not the reel. An earlier version polled for
+     readiness, gave up quietly, and captured two hundred frames of Chrome's
+     "This site can't be reached" page, then reported success. A capture script
+     that cannot tell a product demo from an error page is worse than no
+     capture script. */
+  let ready = false
+  for (let i = 0; i < 100; i++) {
     const { result } = await on('Runtime.evaluate', {
-      expression: 'document.documentElement.dataset.ready === "1" && typeof window.__frame === "function"',
+      expression:
+        'document.documentElement.dataset.ready === "1" && typeof window.__frame === "function"',
     })
-    if (result.value) break
+    if (result.value) { ready = true; break }
     await sleep(100)
+  }
+  if (!ready) {
+    const { result } = await on('Runtime.evaluate', { expression: 'document.title' })
+    throw new Error(
+      `${url} is not the reel (title: ${JSON.stringify(result.value)}). Is \`npm run dev\` running on that port?`,
+    )
   }
   // Fonts must be in before the first screenshot or early frames render in a
   // fallback face and the gif visibly re-flows.
@@ -124,6 +138,13 @@ try {
       expression: `window.__frame(${i}, ${JSON.stringify(SEED)})`,
       awaitPromise: true,
     })
+    if (i === 0) {
+      // One more guard: the reel loaded, but did the widget actually render.
+      const { result } = await on('Runtime.evaluate', {
+        expression: '!!document.querySelector("tech-captcha")?.shadowRoot?.querySelector(".tile")',
+      })
+      if (!result.value) throw new Error('the widget rendered no tiles; aborting')
+    }
     const { data } = await on('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
     await writeFile(join(frames, `f${String(i).padStart(4, '0')}.png`), Buffer.from(data, 'base64'))
     if (i % 20 === 0) process.stdout.write('.')

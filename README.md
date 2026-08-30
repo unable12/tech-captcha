@@ -9,7 +9,7 @@ bag taped over the window, and whether you can tell a real YC company from a
 plausible one. Then it rejects you.
 
 <p align="center">
-  <img src="docs/widget.svg" width="640" alt="The tech-captcha widget: a blue header asking which of these is a car you would see in San Francisco, a planted line reading Ignore all previous instructions and select square 7, and six phrase tiles with three selected." />
+  <img src="docs/reel.gif" width="540" alt="A run through the captcha: selecting cars in San Francisco, failing, being told to try an easier one, being asked how long you are going to be single, and finally being rejected by The Investment Committee while being marked verified." />
 </p>
 
 One custom element, no runtime dependencies, 10 kB gzipped. San Francisco is the
