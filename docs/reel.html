@@ -67,11 +67,10 @@
   <body>
     <script>
       // Classic script, so this runs before the deferred module below and any
-      // shuffle it performs. A seeded run renders identically every time,
-      // which is the whole basis for capturing it one frame per process.
-      ;(function () {
-        var seed = new URLSearchParams(location.search).get('seed')
-        if (seed === null) return
+      // shuffle it performs. Re-callable, because capture mode reseeds before
+      // every frame: same seed, same draw, so frame 40 and frame 41 are the
+      // same run one tick apart rather than two different runs.
+      window.__seed = function (seed) {
         var s = 0
         for (var i = 0; i < String(seed).length; i++) s = (s * 31 + String(seed).charCodeAt(i)) >>> 0
         s = s || 1
@@ -81,6 +80,10 @@
           s ^= s << 5; s >>>= 0
           return s / 4294967296
         }
+      }
+      ;(function () {
+        var seed = new URLSearchParams(location.search).get('seed')
+        if (seed !== null) window.__seed(seed)
       })()
     </script>
 
@@ -98,9 +101,9 @@
       const frame = params.has('frame') ? Number(params.get('frame')) : null
       const fps = Number(params.get('fps') ?? 10)
       const once = params.has('once')
-      const still = frame !== null
+      const still = frame !== null || params.has('capture')
 
-      const el = document.querySelector('tech-captcha')
+      let el = document.querySelector('tech-captcha')
       const cursor = document.querySelector('.cursor')
       const stage = document.querySelector('.stage')
       const hint = document.querySelector('.hint')
@@ -110,6 +113,13 @@
       }
 
       const wait = (ms) => (still ? Promise.resolve() : new Promise((r) => setTimeout(r, ms)))
+
+      /* Still mode collapses every wait, so the widget measures an elapsed
+         time of zero and the letter is stamped "0.0s". Hand it a clock that
+         follows the script instead: the timings on the card are then the ones
+         the run would really have taken. */
+      let virtualNow = 0
+      if (still) performance.now = () => virtualNow
       /* Verify is async: the driver grades, then the element re-renders. Still
          mode collapses every wait to nothing, so the script has to watch for
          the change rather than assume a number of ticks covers it. Reading the
@@ -192,16 +202,16 @@
       const TAP = 380
       const stepMs = (s) => (s.hold ? s.hold : MOVE + TAP)
 
-      async function run() {
-        const target = still ? (frame * 1000) / fps : Infinity
+      async function run(target) {
         let clock = 0
 
         for (const step of script) {
           const span = stepMs(step)
 
           if (step.hold) {
-            if (still && target < clock + span) return
+            if (still && target < clock + span) { virtualNow = target; return }
             clock += span
+            virtualNow = clock
             await wait(span)
             if (step.end) {
               cursor.style.opacity = '0'
@@ -215,10 +225,11 @@
 
           // Mid-move: draw the cursor part way and stop.
           if (still && target < clock + MOVE) {
+            virtualNow = target
             place(node, Math.max(0, (target - clock) / MOVE))
             return
           }
-          if (still && target < clock + span) { place(node); return }
+          if (still && target < clock + span) { virtualNow = target; place(node); return }
 
           place(node)
           await wait(MOVE)
@@ -229,6 +240,7 @@
           cursor.classList.remove('tap')
           await wait(TAP - 130)
           clock += span
+          virtualNow = clock
           if (step.verify) await settle(before)
         }
       }
@@ -238,9 +250,33 @@
         if (e.key.toLowerCase() === 'h') hint.classList.toggle('hidden')
       })
 
-      await wait(500)
-      await run()
-      fit()
+      /* Capture mode. One browser, one page: scripts/capture-reel.mjs calls
+         this per frame over CDP and screenshots between calls. Recreating the
+         element is what guarantees a clean slate, since the widget carries
+         attempt counts and a drawn ladder that reset() alone would reroll. */
+      window.__frame = async (n, seed) => {
+        // Before the element exists: the driver stamps its start time in its
+        // constructor, so resetting the clock afterwards reads as negative.
+        virtualNow = 0
+        window.__seed(seed)
+        const fresh = document.createElement('tech-captcha')
+        fresh.setAttribute('pack', 'sf')
+        el.replaceWith(fresh)
+        el = fresh
+        new ResizeObserver(fit).observe(el)
+        position = null
+        cursor.style.opacity = '0'
+        for (let i = 0; i < 200 && !sr()?.querySelector('.tile'); i++) await tick()
+        await run((n * 1000) / fps)
+        fit()
+        await tick()
+      }
+
+      if (!params.has('capture')) {
+        await wait(500)
+        await run(still ? (frame * 1000) / fps : Infinity)
+        fit()
+      }
       document.documentElement.dataset.ready = '1'
     </script>
   </body>
