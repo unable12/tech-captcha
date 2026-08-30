@@ -1,6 +1,6 @@
 {
   "name": "tech-captcha",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A captcha for people who have opinions about Sand Hill Road.",
   "license": "MIT",
   "author": "Kamil Ruczynski",
@@ -42,7 +42,8 @@
     "build": "vite build && vite build --config vite.server.config.ts",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "test": "npm run build && node test/server.mjs"
+    "test": "npm run build && node test/server.mjs",
+    "prepublishOnly": "npm test"
   },
   "devDependencies": {
     "typescript": "^5.9.0",
