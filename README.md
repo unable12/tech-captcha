@@ -12,16 +12,24 @@ plausible one. Then it rejects you.
   <img src="docs/reel.gif" width="540" alt="A run through the captcha: selecting cars in San Francisco, failing, being told to try an easier one, being asked how long you are going to be single, and finally being rejected by The Investment Committee while being marked verified." />
 </p>
 
-One custom element, no runtime dependencies, 10 kB gzipped. San Francisco is the
+One custom element, no runtime dependencies, 12 kB gzipped. San Francisco is the
 pack that ships in the box; the challenges, the escape hatch and the rankings
 are data, so any scene can have its own.
 
 ## Install
 
-Not on npm yet. Clone, `npm run build`, serve `dist/tech-captcha.js`.
+```bash
+npm install tech-captcha
+```
+
+```js
+import 'tech-captcha'
+```
+
+No bundler? Serve `dist/tech-captcha.js` and load it with
+`<script type="module">`. Either way you get the element:
 
 ```html
-<script type="module" src="/tech-captcha.js"></script>
 <tech-captcha pack="sf"></tech-captcha>
 ```
 
